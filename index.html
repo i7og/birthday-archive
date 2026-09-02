@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050806" />
+    <title>Birthday Archive — Prototype Selector</title>
+    <link rel="stylesheet" href="selector.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <main class="selector">
+      <header class="selector__header">
+        <div><span class="status"></span> BIRTHDAY ARCHIVE / DEVELOPMENT BUILD</div>
+        <span>SELECT INTERFACE</span>
+      </header>
+
+      <section class="selector__content">
+        <p class="kicker">PROTOTYPE DIRECTORY</p>
+        <h1>CHOOSE A<br />PROTOTYPE</h1>
+        <p class="intro">Каждый вариант — отдельное направление дизайна и взаимодействия. Новые прототипы будут появляться здесь автоматически.</p>
+
+        <div class="prototype-grid">
+          <a class="prototype-card is-ready" href="prototype-1/" style="--delay: .05s">
+            <span class="prototype-card__number">01</span>
+            <div class="mini-window">
+              <div class="mini-window__bar"><i></i><i></i><i></i></div>
+              <div class="mini-window__screen">
+                <b>&gt; PERSONAL_ARCHIVE.EXE</b>
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="prototype-card__copy">
+              <h2>ПРОТОТИП 1</h2>
+              <p>Консольная оболочка и светлые архивные окна</p>
+              <small>STATUS: READY TO OPEN →</small>
+            </div>
+          </a>
+
+          <article class="prototype-card is-locked" style="--delay: .16s">
+            <span class="prototype-card__number">02</span>
+            <div class="mini-window mini-window--empty"><span>+</span></div>
+            <div class="prototype-card__copy">
+              <h2>ПРОТОТИП 2</h2>
+              <p>Следующая визуальная концепция</p>
+              <small>STATUS: NOT BUILT YET</small>
+            </div>
+          </article>
+
+          <article class="prototype-card is-locked" style="--delay: .27s">
+            <span class="prototype-card__number">03</span>
+            <div class="mini-window mini-window--empty"><span>+</span></div>
+            <div class="prototype-card__copy">
+              <h2>ПРОТОТИП 3</h2>
+              <p>Свободный слот для эксперимента</p>
+              <small>STATUS: NOT BUILT YET</small>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer><span>&gt; AVAILABLE BUILDS: 1</span><span>VERSION CONTROL: ACTIVE</span></footer>
+    </main>
+  </body>
+</html>
