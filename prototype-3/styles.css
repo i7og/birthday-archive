@@ -187,10 +187,10 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 /* ============================ SCENE 1 / 2 ============================ */
 
 .s-boot{ justify-content:center; }
-.s-boot .term{ margin-left:9%; }
+.s-boot .term{ margin-left:6%; }
 .s2-observer{ font-size:2.1em; font-weight:700; letter-spacing:.07em; color:var(--g-bright); margin-top:.7em; }
-.s2-mission{ font-size:2.35em; font-weight:700; letter-spacing:.045em; color:var(--g-bright);
-             text-shadow:0 0 16px rgba(78,240,138,.55); }
+.s2-mission{ font-size:2em; font-weight:700; letter-spacing:.045em; color:var(--g-bright);
+             text-shadow:0 0 16px rgba(78,240,138,.55); white-space:nowrap; }
 .s2-warn{ margin-top:auto; border-top:1px dashed var(--line); padding-top:12px;
           font-size:.9em; color:var(--g-dim); letter-spacing:.1em; }
 
@@ -595,7 +595,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   .sc-quote{ text-align:left; }
   .term{ font-size:1.15em; }
   .s-boot .term{ margin-left:0; }
-  .s2-mission{ font-size:1.55em; }
+  .s2-mission{ font-size:1.55em; white-space:normal; }
   .s2-observer{ font-size:1.4em; }
   .s3-grid{ grid-template-columns:1fr; gap:22px; }
   .s4-grid{ grid-template-columns:1fr; grid-template-rows:none; }
@@ -696,3 +696,29 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 }
 /* заметки коллажа должны быть различимы, пока фото не подложены */
 .s5-collage > div .ph{ color:var(--g-dim); }
+
+/* =========================================================================
+   ТЕКСТ: трекинг и пословный вывод
+   --tracking — одна ручка межбуквенного расстояния для набираемого текста.
+   1.5mm = 5.67 CSS px. На телефоне уменьшено, иначе строки не помещаются.
+   ========================================================================= */
+
+:root{ --tracking:1.5mm; }
+
+.term        { letter-spacing:calc(.045em + var(--tracking)); }
+.s2-observer { letter-spacing:calc(.07em  + var(--tracking)); }
+.s2-mission  { letter-spacing:calc(.045em + var(--tracking)); }
+.s3-rows     { letter-spacing:calc(.05em  + var(--tracking)); }
+.s3-sys      { letter-spacing:var(--tracking); }
+.s10-term    { letter-spacing:var(--tracking); }
+
+/* строки не должны выпадать из колонки из-за возросшего трекинга */
+.term .ln, .s3-rows .ln, .s10-term .ln{ overflow-wrap:anywhere; }
+
+/* слова, выводимые по очереди */
+.word{ opacity:0; transition:opacity .28s ease; }
+.word.in{ opacity:1; }
+
+@media (max-width:900px){
+  :root{ --tracking:.6mm; }
+}

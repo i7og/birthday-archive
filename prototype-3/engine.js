@@ -41,12 +41,19 @@ function ctxFor(token) {
   };
 }
 
-/* --- печать текста --- */
+/* --- печать текста ---------------------------------------------------------
+   TYPE_SLOW — единственная ручка скорости набора. Меньше значение — медленнее
+   идут буквы. 1 = исходный темп, 0.6 = примерно на 4–5 секунд дольше на кадр.
+   WORD_GAP — пауза между словами там, где текст выводится по словам.
+--------------------------------------------------------------------------- */
+const TYPE_SLOW = 0.6;
+const WORD_GAP  = 42;
+
 async function type(ctx, node, text, cps = 55) {
   node.textContent = '';
   const caret = el('span', 'caret');
   node.appendChild(caret);
-  const delay = 1000 / cps;
+  const delay = 1000 / (cps * TYPE_SLOW);
   for (let i = 0; i < text.length; i++) {
     node.insertBefore(document.createTextNode(text[i]), caret);
     const c = text[i];
@@ -63,6 +70,33 @@ async function typeVerdict(ctx, node, t, v, cps = 65) {
   const b = el('span', v === 'DENIED' ? 'no' : 'ok');
   node.appendChild(b);
   await type(ctx, b, ' — ' + v, cps + 30);
+}
+
+/* --- пословный вывод -------------------------------------------------------
+   wordify() разбивает текст на <span class="word">, сохраняя пробелы
+   отдельными текстовыми узлами — отступы в списках не ломаются.
+--------------------------------------------------------------------------- */
+function wordify(node) {
+  const txt = node.textContent;
+  node.textContent = '';
+  txt.split(/(\s+)/).forEach(p => {
+    if (!p) return;
+    if (/^\s+$/.test(p)) node.appendChild(document.createTextNode(p));
+    else node.appendChild(el('span', 'word', p));
+  });
+  return [...node.querySelectorAll('.word')];
+}
+
+/* собирает слова из всех текстовых строк карточки */
+function wordifyAll(root, selectors) {
+  const words = [];
+  root.querySelectorAll(selectors).forEach(n => words.push(...wordify(n)));
+  return words;
+}
+
+async function revealWords(ctx, words, gap) {
+  const g = gap == null ? WORD_GAP : gap;
+  for (const w of words) { w.classList.add('in'); await ctx.wait(g); }
 }
 
 /* --- показать элемент(ы) --- */

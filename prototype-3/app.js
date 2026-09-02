@@ -185,7 +185,7 @@ function togglePause() {
 /* ---------------- загрузка «старого компьютера» ---------------- */
 const BOOTLOG = [
   'SYS-41 PERSONAL ARCHIVE OS   v41.0',
-  'COPYRIGHT (C) 1984-2026  PRIMARY OBSERVER',
+  'COPYRIGHT (C) 1984',
   '',
   'MEMORY TEST ................. 640K OK',
   'DETECTING STORAGE ........... ARCHIVE FOUND',

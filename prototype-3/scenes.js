@@ -292,6 +292,9 @@ function monthCard(m) {
     c.appendChild(s);
   }
   if (m.quote) c.appendChild(el('div', 'm-quote', m.quote));
+
+  /* текст карточки выводится по словам, когда она встала на место */
+  c._words = wordifyAll(c, '.m-head span:last-child, ul li, .m-sub .sh, .m-quote');
   return c;
 }
 
@@ -330,6 +333,7 @@ const SC4 = {
       c.classList.add('settle');
       await ctx.wait(260);
 
+      await revealWords(ctx, c._words);
       for (const [bar, to] of (c._bars || [])) await runBar(ctx, bar, to, 900);
       if (c._loaders) {
         for (const b of c._loaders) { b.textContent = 'LOADING'; await ctx.wait(150); }
@@ -365,7 +369,9 @@ const SC5 = {
         : photoSlot({ src: b.src, title: b.key, label: 'PHOTO / SCAN' });
       if (b.logo) ph.appendChild(optimusLogo(b.logo));
       w.appendChild(ph);
-      w.appendChild(el('div', 'cap', b.caption));
+      const cap = el('div', 'cap', b.caption);
+      w.appendChild(cap);
+      w._words = wordify(cap);
       grid.appendChild(w);
       return w;
     });
@@ -386,7 +392,14 @@ const SC5 = {
     await ctx.wait(360);
     show(r.H.quote);
     await ctx.wait(520);
-    await dealCards(ctx, r.blocks, 420, 430);
+    for (const b of r.blocks) {
+      b.classList.add('enter');
+      await ctx.wait(430);
+      b.classList.remove('enter');
+      b.classList.add('settle');
+      await revealWords(ctx, b._words);
+      await ctx.wait(300);
+    }
     await ctx.wait(300);
     show(r.sum);
     await ctx.wait(400);
@@ -526,6 +539,7 @@ const SC7 = {
       const h = el('div', 'h');
       h.append(el('span', 'n', b.n), el('span', null, b.t));
       c.append(h, list(b.items));
+      c._words = wordifyAll(c, '.h span:last-child, ul li');
       if (i === 4) {
         const wrap = el('div', 's7-stack');
         wrap.appendChild(c);
@@ -554,7 +568,14 @@ const SC7 = {
     await ctx.wait(340);
     show(r.H.sub);
     await ctx.wait(460);
-    await dealCards(ctx, r.cards, 330, 400);
+    for (const c of r.cards) {
+      c.classList.add('enter');
+      await ctx.wait(400);
+      c.classList.remove('enter');
+      c.classList.add('settle');
+      if (c._words) await revealWords(ctx, c._words, 34);
+      await ctx.wait(200);
+    }
     await ctx.wait(400);
     show(r.note); show(r.ver);
     await ctx.wait(1600);
@@ -576,6 +597,7 @@ const SC8 = {
       const h = el('div', 'h');
       h.append(el('span', null, t.i), el('span', null, t.t));
       c.append(h, el('div', 'd', t.d));
+      c._words = wordifyAll(c, '.h span:last-child, .d');
       return c;
     };
     const colL = el('div', 's8-col');
@@ -635,7 +657,14 @@ const SC8 = {
     /* карточки чередуются: слева — справа */
     const inter = [];
     for (let i = 0; i < 4; i++) { inter.push(r.cardsL[i]); inter.push(r.cardsR[i]); }
-    await dealCards(ctx, inter, 250, 330);
+    for (const c of inter) {
+      c.classList.add('enter');
+      await ctx.wait(330);
+      c.classList.remove('enter');
+      c.classList.add('settle');
+      if (c._words) await revealWords(ctx, c._words, 30);
+      await ctx.wait(150);
+    }
 
     await ctx.wait(300);
     show(r.dev);
