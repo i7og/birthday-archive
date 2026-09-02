@@ -39,6 +39,8 @@ function typeBootLine(index = 0) {
 }
 
 function launch() {
+  const music = document.querySelector("#prototypeMusic");
+  if (music && music.paused && music.currentTime === 0) music.play().catch(() => {});
   screen.classList.add("is-starting");
   window.setTimeout(() => {
     boot.hidden = true;

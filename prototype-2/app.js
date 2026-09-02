@@ -25,6 +25,8 @@ document.addEventListener("keydown", (event) => {
 });
 
 function startProcess() {
+  const music = document.querySelector("#prototypeMusic");
+  if (music && music.paused && music.currentTime === 0) music.play().catch(() => {});
   startScreen.hidden = true;
   liveStage.hidden = false;
   showPhase(0);
