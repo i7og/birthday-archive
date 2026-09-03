@@ -174,7 +174,8 @@ const SC2 = {
       await ctx.wait(140);
     }
     await type(ctx, r.mission, C.s2.mission, 26);
-    await ctx.wait(420);
+    r.mission.classList.add('flash');
+    await ctx.wait(900);
     for (let i = 0; i < C.s2.lines3.length; i++) {
       await type(ctx, r.lines3[i], '> ' + C.s2.lines3[i], 55);
       await ctx.wait(160);
@@ -211,7 +212,7 @@ const SC3 = {
     left.append(rows, sys, alert);
 
     const right = el('div');
-    const scanbox = el('div', 'scanbox');
+    const scanbox = el('div', 'scanbox rv');
     const photo = photoSlot(C.s3.photo, 's3-photo');
     scanbox.append(photo, el('div', 'scanline'));
     const cap = el('div', 's3-cap rv', C.s3.scanCaption);
@@ -238,6 +239,8 @@ const SC3 = {
     show(r.alert);
     Snd.play('scan');
     await ctx.wait(650);
+    show(r.scanbox);
+    await ctx.wait(500);
     r.scanbox.classList.add('scanning');
     await ctx.wait(4600);
     show(r.cap);
@@ -323,8 +326,6 @@ const SC4 = {
     await ctx.wait(560);
     show(r.meta);
     await ctx.wait(520);
-    Snd.play('music');
-
     for (let i = 0; i < r.cards.length; i++) {
       const c = r.cards[i];
       c.classList.add('enter');
@@ -343,8 +344,14 @@ const SC4 = {
         c._lock[0].textContent = c._lock[1];
         c._lock[0].classList.add('un');
       }
-      if (i === 2) { show(r.noteA); await ctx.wait(260); }
-      if (i === 4) { show(r.noteB); await ctx.wait(260); }
+      if (i === 1) { show(r.noteA); await ctx.wait(520); }
+      if (i === 3) {
+        const music = Snd.tracks.music;
+        if (music && !music._dead) music.currentTime = 25;
+        await ctx.wait(650);
+        show(r.noteB);
+        await ctx.wait(520);
+      }
       await ctx.wait(130);
     }
     show(r.foot);
@@ -540,28 +547,18 @@ const SC7 = {
       h.append(el('span', 'n', b.n), el('span', null, b.t));
       c.append(h, list(b.items));
       c._words = wordifyAll(c, '.h span:last-child, ul li');
-      if (i === 4) {
-        const wrap = el('div', 's7-stack');
-        wrap.appendChild(c);
-        const ph = photoSlot(C.s7.photo, 's7-photo');
-        wrap.appendChild(ph);
-        grid.appendChild(wrap);
-        cards.push(c);
-        cards.push(ph);
-        ph.classList.add('card');
-      } else {
-        grid.appendChild(c);
-        cards.push(c);
-      }
+      grid.appendChild(c);
+      cards.push(c);
     });
 
+    const opinion = el('div', 's7-opinion rv', C.s7.opinion);
     const foot = el('div', 's7-foot');
     const note = el('div', 's7-note rv');
     C.s7.footnote.forEach(l => note.appendChild(el('div', null, '> ' + l)));
     const ver = el('div', 's7-note rv', C.s7.version);
     foot.append(note, ver);
-    root.append(H.node, H.rule, grid, foot);
-    return { H, cards, note, ver };
+    root.append(H.node, H.rule, grid, opinion, foot);
+    return { H, cards, opinion, note, ver };
   },
   async play(ctx, r) {
     show(r.H.t); show(r.H.rule);
@@ -577,6 +574,8 @@ const SC7 = {
       await ctx.wait(200);
     }
     await ctx.wait(400);
+    show(r.opinion);
+    await ctx.wait(500);
     show(r.note); show(r.ver);
     await ctx.wait(1600);
   }
@@ -722,7 +721,8 @@ const SC9 = {
 
     /* левая колонка — тренды */
     const left = el('div', 's9-panel');
-    left.appendChild(el('div', 'ph', C.s9.trendsTitle));
+    const trendsTitle = el('div', 'ph rv strong', C.s9.trendsTitle);
+    left.appendChild(trendsTitle);
     const sleepPhoto = photoSlot(C.s9.sleepPhoto, 's9-sleepphoto');
     left.appendChild(sleepPhoto);
     const trends = C.s9.trends.map(t => { const n = trendNode(t, C.s9.monthLabels); left.appendChild(n); return n; });
@@ -731,7 +731,8 @@ const SC9 = {
 
     /* правая колонка — цифры */
     const right = el('div', 's9-panel');
-    right.appendChild(el('div', 'ph', C.s9.statsTitle));
+    const statsTitle = el('div', 'ph rv strong', C.s9.statsTitle);
+    right.appendChild(statsTitle);
     const stats = C.s9.stats.map(s => {
       const row = el('div', 'statrow rv');
       row.append(el('span', 'l', s.label), el('span', 'dots'));
@@ -750,7 +751,8 @@ const SC9 = {
     coffee.appendChild(calert);
     right.appendChild(coffee);
 
-    right.appendChild(el('div', 'ph', C.s9.repairsTitle));
+    const repairsTitle = el('div', 'ph rv strong', C.s9.repairsTitle);
+    right.appendChild(repairsTitle);
     const repairs = C.s9.repairs.map(x => {
       const row = el('div', 'statrow rv');
       row.append(el('span', 'l', x.i + ' ' + x.label), el('span', 'dots'), el('span', 'v', x.v));
@@ -766,16 +768,20 @@ const SC9 = {
     foot.appendChild(bar);
 
     root.append(H.node, H.rule, grid, foot);
-    return { H, sleepPhoto, trends, shift, stats, cv, calert, repairs, foot, bar };
+    return { H, trendsTitle, statsTitle, repairsTitle, sleepPhoto, trends, shift, stats, cv, calert, repairs, foot, bar };
   },
   async play(ctx, r) {
     show(r.H.t); show(r.H.rule);
     await ctx.wait(400);
+    show(r.trendsTitle);
+    await ctx.wait(500);
     for (const t of r.trends) { t.classList.add('in'); await ctx.wait(900); }
     await ctx.wait(300);
     show(r.shift);
     await ctx.wait(700);
 
+    show(r.statsTitle);
+    await ctx.wait(500);
     for (const st of r.stats) {
       show(st.row);
       if (st.s.raw == null) {
@@ -788,7 +794,9 @@ const SC9 = {
     await countTo(ctx, r.cv, C.s9.coffee.value, 1400);
     show(r.calert);
     await ctx.wait(700);
-    await showSeq(ctx, r.repairs, 200);
+    show(r.repairsTitle);
+    await ctx.wait(450);
+    await showSeq(ctx, r.repairs, 260);
     await ctx.wait(400);
     show(r.foot);
     await runBar(ctx, r.bar, C.s9.progress.to, 1600);

@@ -32,7 +32,7 @@ window.CONTENT = {
     lines: [
       "WARNING: LIMITED DATA DETECTED",
       "DATE RANGE: OCTOBER 2025 — JANUARY 2026",
-      "AVAILABLE EVIDENCE SUGGESTS: SPANISH · DEVELOPER · HANDSOME ✓",
+      "AVAILABLE EVIDENCE SUGGESTS: SPANISH · DEVELOPER · HANDSOME",
       "PRIMARY OBSERVER: NOT YET ENTERED THE SYSTEM",
       "DATA SOURCE: REPORTED STORIES",
       "VERIFICATION STATUS: PARTIAL"
@@ -83,41 +83,48 @@ window.CONTENT = {
     months: [
       { id:"oct", n:"01", m:"OCTOBER 2025", icon:"⚠", gap:true,
         head:"DATA MISSED",
-        body:["Historical data unavailable.","The observer had not entered the system yet."] },
+        body:["HISTORICAL DATA UNAVAILABLE.","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
       { id:"nov", n:"02", m:"NOVEMBER 2025", icon:"⚠", gap:true,
         head:"DATA MISSED",
-        body:["Historical data unavailable.","The observer had not entered the system yet."] },
+        body:["HISTORICAL DATA UNAVAILABLE.","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
       { id:"dec", n:"03", m:"DECEMBER 2025", icon:"🐶",
         head:"NEW IDEA DETECTED",
-        body:["POTENTIAL NEW LIFE COMPANION: DOG 🐶","STATUS: CONSIDERING","FUTURE DOG OWNER: ? MAYBE","DECISION: PENDING"],
+        body:["POTENTIAL NEW LIFE COMPANION: DOG 🐶","STATUS: CONSIDERING","FUTURE DOG OWNER: ? MAYBE"],
+        photo:{ src:"photos/s4-december-dog.jpg", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" },
+        lock:{ from:"DECISION: PENDING", to:"DECISION: PENDING" },
         quote:"A new chapter was under consideration." },
 
       { id:"jan", n:"04", m:"JANUARY 2026", icon:"🔄",
         head:"DECISION UPDATED",
-        body:["DOG: ❌","ACTIVE DATING MODE: 🟢 ON","PREVIOUS PLAN: DEPRECATED","NEW OBJECTIVE: MEET SOMEONE INTERESTING"] },
+        body:["DOG: ❌","ACTIVE DATING MODE: 🟢 ON","PREVIOUS PLAN: DEPRECATED"],
+        lock:{ from:"NEW OBJECTIVE: MEET SOMEONE INTERESTING", to:"NEW OBJECTIVE: MEET SOMEONE INTERESTING" } },
 
       { id:"feb", n:"05", m:"FEBRUARY 2026", icon:"💘",
         head:"QUEST STARTED",
-        body:["FIRST PROPER SUCCESSFUL DATE: DETECTED","🗺️ MÁLAGA EXPLORATION: UNLOCKED","🍰 PISTACHIO CHEESECAKE EATING: ACTIVATED","☕ COFFEE CONSUMPTION: INCREASED","NEW CHAPTER: STARTED"] },
+        body:["FIRST PROPER SUCCESSFUL DATE: DETECTED","🗺️ MÁLAGA EXPLORATION: UNLOCKED","🍰 PISTACHIO CHEESECAKE EATING: ACTIVATED","☕ COFFEE CONSUMPTION: INCREASED"],
+        lock:{ from:"NEW CHAPTER: STARTED", to:"NEW CHAPTER: STARTED" } },
 
       { id:"mar", n:"06", m:"MARCH 2026", icon:"💋", ribbon:"FIRST KISS OF 2026",
         head:"NEW ACHIEVEMENT",
-        body:["🍰 PISTACHIO CHEESECAKE: UNLIMITED","☕ COFFEE TIME: INCREASED RAPIDLY","ACHIEVEMENT: UNLOCKED"] },
+        body:["🍰 PISTACHIO CHEESECAKE: UNLIMITED","☕ COFFEE TIME: INCREASED RAPIDLY"],
+        photo:{ src:"photos/s4-march-kiss.jpg", label:"KISS PHOTO", title:"MARCH — FIRST KISS" },
+        lock:{ from:"ACHIEVEMENT: UNLOCKED", to:"ACHIEVEMENT: UNLOCKED" } },
 
       { id:"apr", n:"07", m:"APRIL 2026", icon:"🛥️",
         head:"NEW SKILL TREE",
         body:["🛥️ SAILING — TRAINING STARTED"],
         bar:{ label:"PROGRESS", to:72 },
-        body2:["NEW ERA: DETECTED","BACHELOR LIFE: CHANGED","🔓 NEW EXPERIENCES","🔓 NEW ROUTINES","🔓 NEW POSSIBILITIES"] },
+        body2:["NEW ERA: DETECTED","🔓 NEW EXPERIENCES","🔓 NEW ROUTINES","🔓 NEW POSSIBILITIES"],
+        lock:{ from:"BACHELOR LIFE: CHANGED", to:"BACHELOR LIFE: CHANGED" } },
 
       { id:"may", n:"08", m:"MAY 2026", icon:"📚",
         head:"STUDY MODE: ACTIVE",
         body:["📚 STUDY HOURS: HIGH","EXAMS: INCOMING"],
         bar:{ label:"FOCUS", to:90 },
         bar2:{ label:"FREE TIME", to:20 },
-        body2:["STUDY MODE: ACTIVATED"] },
+        lock:{ from:"STUDY MODE: ACTIVATED", to:"STUDY MODE: ACTIVATED" } },
 
       { id:"jun", n:"09", m:"JUNE 2026", icon:"🏆",
         head:"MAJOR ACHIEVEMENT — BOAT LICENSE",
@@ -127,20 +134,22 @@ window.CONTENT = {
 
       { id:"jul", n:"10", m:"JULY 2026", icon:"⚽",
         head:"SUMMER CHALLENGE",
-        body:["🌡️ CITY EXPLORATION — HARD MODE","TEMPERATURE: 🔥🔥🔥🔥🔥","The highest degree of the year","OBJECTIVE: EXPLORE THE CITIES ANYWAY","STATUS: COMPLETED ✅"],
+        body:["🌡️ CITY EXPLORATION — HARD MODE","TEMPERATURE: 🔥🔥🔥🔥🔥","THE HIGHEST DEGREE OF THE YEAR","OBJECTIVE: EXPLORE THE CITIES ANYWAY"],
+        lock:{ from:"STATUS: COMPLETED ✅", to:"STATUS: COMPLETED ✅" },
         sub:{ head:"🏆 WORLD CUP MODE",
               body:["🇪🇸 TEAM SELECTED: SPAIN","MATCHES WATCHED: NO DATA AVAILABLE","EMOTIONAL INVESTMENT: 100%"] } },
 
       { id:"aug", n:"11", m:"AUGUST 2026", icon:"🏖️",
         head:"CHILL MODE ACTIVATED",
-        body:["🌊 TORREMOLINOS BEACH TIME","🍧 SOLERO: MANY","👯 FRIENDS TIME: PLENTY","🌾 BUCKWHEAT: TRIED","VIBES: CHILL 😎"],
+        body:["🌊 TORREMOLINOS BEACH TIME","🍧 SOLERO: MANY","👯 FRIENDS TIME: PLENTY","🌾 BUCKWHEAT: TRIED"],
+        lock:{ from:"VIBES: CHILL", to:"VIBES: CHILL" },
         photo:{ src:"photos/s4-august-beach.jpg", label:"PHOTO / SCAN", title:"TORREMOLINOS — AUGUST 2026" } },
 
       { id:"sep", n:"12", m:"SEPTEMBER 2026", icon:"🎂",
         head:"PREVIOUS VERSION: COMPLETED ✅",
         body:["UPCOMING RELEASE: VERSION 42.0","RELEASE DATE: 19.09.2026","NEW VERSION LOADING…"],
         loaders:["NEW SKILLS","NEW PLACES","NEW STORIES","NEW ACHIEVEMENTS"],
-        body2:["STATUS: READY TO DEPLOY"] }
+        lock:{ from:"STATUS: READY TO DEPLOY", to:"STATUS: READY TO DEPLOY" } }
     ]
   },
 
@@ -174,7 +183,7 @@ window.CONTENT = {
       { name:"TORREMOLINOS", x:515, y:458, hot:true }
     ],
     malaga: { name:"MÁLAGA", x:534, y:386 },
-    zoomTitle: "MÁLAGA (ZOOM)",
+    zoomTitle: "MÁLAGA",
     zoomPins: [
       { name:"BOTANICAL GARDEN", x:140, y:62  },
       { name:"GIBRALFARO",       x:330, y:108 },
@@ -183,13 +192,14 @@ window.CONTENT = {
       { name:"CITY CENTRE",      x:236, y:246 }
     ],
     summary: ["TOTAL LOCATIONS DISCOVERED: 8", "MÁLAGA SUB-LOCATIONS: 5"],
-    highlight: ["TORREMOLINOS", "The most visited location of Version 41.0"]
+    highlight: ["TORREMOLINOS", "THE MOST VISITED LOCATION OF VERSION 41.0"]
   },
 
   /* ---------- КАДР 7 ---------- */
   s7: {
     title: "JOSE'S LEGACY FEATURES",
-    sub: "Some features have been running for years.",
+    sub: "SOME FEATURES HAVE BEEN RUNNING FOR YEARS",
+    opinion: "OPINION DATABASE: EXTREMELY SPECIFIC ✓",
     footnote: ["End of log", "Saving data….", "Data saved"],
     version: "version 41.0",
     photo: { src:"photos/s7-portrait.jpg", label:"PHOTO / SCAN", title:"LEGACY BUILD" },
@@ -243,14 +253,14 @@ window.CONTENT = {
 
   /* ---------- КАДР 8 ---------- */
   s8: {
-    title: "CORE CHARACTER",
+    title: "JOSE'S CORE CHARACTER",
     sub: "BEYOND THE DATA",
     status: "PERSONALITY SYSTEM: ANALYZED ✓",
     photo: { src:"photos/s8-portrait.jpg", label:"PHOTO / SCAN", title:"CORE CHARACTER" },
     traits: [
-      { i:"🫶", t:"KIND & THOUGHTFUL",     d:"KIND BY NATURE, THOUGHTFUL IN THE WAY YOU TREAT OTHERS." },
+      { i:"🫶", t:"KIND, THOUGHTFUL & CARING", d:"KIND BY NATURE, THOUGHTFUL IN THE WAY YOU TREAT OTHERS, AND ALWAYS THERE FOR THE PEOPLE YOU LOVE" },
       { i:"👂", t:"ATTENTIVE",             d:"YOU LISTEN, YOU NOTICE THE LITTLE THINGS, AND YOU REMEMBER." },
-      { i:"❤️", t:"CARING",                d:"YOU SHOW UP, MAKE TIME, AND ALWAYS MAKE SURE YOUR PEOPLE KNOW YOU'RE THERE." },
+      { i:"💡", t:"PROBLEM SOLVER",        d:"WHATEVER LIFE THROWS YOUR WAY, YOU KEEP A COOL HEAD, FIGURE THINGS OUT, AND FIND A WAY FORWARD" },
       { i:"😄", t:"A GREAT SENSE OF HUMOUR", d:"YOU MAKE PEOPLE LAUGH, AND SOMEHOW, LIFE WITH YOU IS NEVER BORING." },
       { i:"🌿", t:"WARM & GENUINE",        d:"YOU MAKE PEOPLE FEEL ACCEPTED, VALUED, AND FREE TO BE THEMSELVES." },
       { i:"🧠", t:"CURIOUS & OPEN-MINDED", d:"YOU'RE CURIOUS ABOUT PEOPLE, LIFE, AND EVERYTHING THERE IS TO DISCOVER." },
@@ -269,18 +279,18 @@ window.CONTENT = {
     score: "PERSONALITY SCORE",
     note: ["SYSTEM NOTE:", "KEEP BEING YOU.", "THE WORLD NEEDS IT."],
     secret: ["PRIMARY OBSERVER'S NOTE",
-             "After all the data, stories, places, achievements and random facts…",
-             "I have to admit: I admire you ❤️"]
+             "AFTER ALL THE DATA, STORIES, PLACES, ACHIEVEMENTS AND RANDOM FACTS…",
+             "I HAVE TO ADMIT: I ADMIRE YOU 🫶"]
   },
 
   /* ---------- КАДР 9 ---------- */
   s9: {
-    title: "NUMBERS & STATISTICS",
+    title: "JOSE’S NUMBER AND STATISTICS",
     trendsTitle: "MONTHLY TRENDS · OCTOBER 2025 – SEPTEMBER 2026",
     monthLabels: ["O","N","D","J","F","M","A","M","J","J","A","S"],
     trends: [
       { i:"🍰", name:"PISTACHIO CHEESECAKE", data:[2,3,6,12,58,92,96,74,66,60,46,44] },
-      { i:"😴", name:"SLEEP",                data:[90,88,91,86,82,78,62,55,52,50,51,56], tag:"NORMALIZED" },
+      { i:"😴", name:"SLEEP",                data:[90,88,91,86,82,78,62,55,52,50,51,56] },
       { i:"🎮", name:"GAMING",               data:[80,82,78,80,70,64,45,35,30,28,25,31] },
       { i:"🍳", name:"BREAKFASTS",           data:[20,18,22,20,31,42,74,85,88,92,95,90] }
     ],
@@ -308,8 +318,8 @@ window.CONTENT = {
       { i:"🔥", label:"BOILER",                v:"1" },
       { i:"🖼️", label:"PAINTINGS & STUFF HUNG", v:"OBSERVER LOST COUNT." }
     ],
-    footnote: ["PRIMARY OBSERVER: DATA COLLECTION ONGOING...",
-               "Disclaimer: Some data points may be incomplete or inaccurate."],
+    footnote: ["PRIMARY OBSERVER: DATA COLLECTION ONGOING……..",
+               "DISCLAIMER: SOME DATA POINTS MAY BE INCOMPLETE OR INACCURATE"],
     progress: { label:"VERSION 42.0 IN PROGRESS — UPDATE", to:89 }
   },
 
@@ -320,20 +330,19 @@ window.CONTENT = {
     period: [["RELEASE PERIOD","SEPT 2025 → SEPT 2026"],["STATUS","COMPLETED ✓"]],
     highlightsTitle: "HIGHLIGHTS",
     highlights: [
-      "🌍 New places discovered",
-      "🛥️ Sailing license unlocked",
-      "🧠 New meanings installed",
-      "❤️ People & connections: confirmed",
-      "🛠️ Problems: solved",
-      "😄 Good memories: collected"
+      "🌍 NEW PLACES: DISCOVERED",
+      "🛥️ SAILING LICENSE: UNLOCKED",
+      "🧠 NEW MEANINGS: INSTALLED",
+      "❤️ PEOPLE & CONNECTIONS: CONFIRMED",
+      "🛠️ PROBLEMS: SOLVED",
+      "😄 GOOD MEMORIES: COLLECTED"
     ],
     saved: ["MEMORIES:  SAVED ✓","EXPERIENCES: STORED ✓","LESSONS:  LEARNED ✓","DATA: ARCHIVED ✓"],
-    thanks: "Thank you, Version 41.0.",
+    thanks: "THANK YOU, VERSION 41.0",
     prompt: ["VERSION 42.0 →", "INSTALL UPDATE? → [ YES ]"],
     installLabel: "INSTALLING VERSION 42.0",
     systems: ["ALL SYSTEMS: ONLINE ✓","NEW FEATURES: INSTALLED ✓","LEGACY FEATURES: PRESERVED ✓","CHARACTER DEVELOPMENT: CONTINUOUS ✓"],
     installLog: [
-      "INSTALLING VERSION 42.0... 100%",
       "INSTALLING NEW POSITIVE EXPERIENCES... OK",
       "INSTALLING NEW PLACES TO DISCOVER... OK",
       "INSTALLING NEW HAPPY STORIES TO TELL... OK",

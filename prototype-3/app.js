@@ -72,6 +72,15 @@ async function goTo(i) {
   $('#btnPause').textContent = '❚❚ PAUSE';
   gapEl.classList.remove('on');
 
+  /* Перед годовым обзором: короткий чёрный экран, затем старт Matrix-темы. */
+  if (i === 3) {
+    gapEl.classList.add('on');
+    Snd.play('music');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (E.token !== token) return;
+    gapEl.classList.remove('on');
+  }
+
   rebuild(i);
   roots.forEach((n, k) => n.classList.toggle('active', k === i));
   cur = i;
@@ -91,7 +100,7 @@ async function goTo(i) {
   if (i === 8) {
     await Snd.fadeOut('music', 2200);
     gapEl.classList.add('on');
-    try { await ctx.wait(8000); } catch (e) { gapEl.classList.remove('on'); return; }
+    try { await ctx.wait(4500); } catch (e) { gapEl.classList.remove('on'); return; }
     gapEl.classList.remove('on');
   }
   if (E.token !== token) return;
@@ -194,7 +203,7 @@ const BOOTLOG = [
 const BOOTLOG2 = [
   'MOUNTING /memories .......... OK',
   'CALIBRATING CRT ............. OK',
-  'ARCHIVE READY.'
+  'ARCHIVE READY'
 ];
 
 async function runBoot() {
@@ -228,7 +237,11 @@ function start() {
   bootEl.classList.add('gone');
   $('#flicker').classList.add('on');
   started = Date.now();
-  goTo(0);
+  gapEl.classList.add('on');
+  setTimeout(() => {
+    gapEl.classList.remove('on');
+    goTo(0);
+  }, 1000);
 }
 
 /* ---------------- старт ---------------- */

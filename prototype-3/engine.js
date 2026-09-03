@@ -46,8 +46,8 @@ function ctxFor(token) {
    идут буквы. 1 = исходный темп, 0.6 = примерно на 4–5 секунд дольше на кадр.
    WORD_GAP — пауза между словами там, где текст выводится по словам.
 --------------------------------------------------------------------------- */
-const TYPE_SLOW = 0.6;
-const WORD_GAP  = 42;
+const TYPE_SLOW = 0.52;
+const WORD_GAP  = 58;
 
 async function type(ctx, node, text, cps = 55) {
   node.textContent = '';
@@ -69,6 +69,7 @@ async function typeVerdict(ctx, node, t, v, cps = 65) {
   await ctx.wait(140);
   const b = el('span', v === 'DENIED' ? 'no' : 'ok');
   node.appendChild(b);
+  if (v === 'DENIED') Snd.play('blip');
   await type(ctx, b, ' — ' + v, cps + 30);
 }
 

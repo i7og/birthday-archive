@@ -191,6 +191,8 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s2-observer{ font-size:2.1em; font-weight:700; letter-spacing:.07em; color:var(--g-bright); margin-top:.7em; }
 .s2-mission{ font-size:2em; font-weight:700; letter-spacing:.045em; color:var(--g-bright);
              text-shadow:0 0 16px rgba(78,240,138,.55); white-space:nowrap; }
+.s2-mission.flash{ animation:missionFlash .22s steps(1,end) 7; }
+@keyframes missionFlash{ 50%{ opacity:.2; text-shadow:none; } }
 .s2-warn{ margin-top:auto; border-top:1px dashed var(--line); padding-top:12px;
           font-size:.9em; color:var(--g-dim); letter-spacing:.1em; }
 
@@ -242,7 +244,8 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   content:''; position:absolute; inset:6px; border:1px dashed rgba(78,240,138,.22);
   pointer-events:none;
 }
-.photo img{ display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.9) contrast(1.03); }
+.photo img{ display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.9) contrast(1.03); animation:photoIn 1.4s ease both; }
+@keyframes photoIn{ from{ opacity:0; transform:scale(1.05); } to{ opacity:1; transform:none; } }
 /* лёгкий CRT-тон поверх фото, чтобы оно жило в одном мире с терминалом.
    В окне (клик по фото) снимок показывается без тонировки, в оригинале.
    Убрать тонировку — удалить этот блок. */
@@ -291,11 +294,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   display:flex; flex-direction:column; gap:4px;
 }
 .mcard--gap{ border-style:dashed; opacity:.85; }
-.mcard .m-top{ display:flex; align-items:center; gap:7px; font-size:.72em; letter-spacing:.1em; color:var(--g-mid); }
+.mcard .m-top{ display:flex; align-items:center; gap:7px; font-size:.72em; font-weight:700; letter-spacing:.1em; color:var(--g-bright); }
 .mcard .m-top .n{ color:var(--g-faint); }
 .mcard .m-head{ display:flex; align-items:flex-start; gap:7px; font-size:.8em; font-weight:700; color:var(--g-bright); line-height:1.3; }
 .mcard .m-head .ic{ font-size:1.2em; line-height:1.15; }
-.mcard ul{ margin:0; padding:0; list-style:none; font-size:.72em; line-height:1.48; color:var(--g); }
+.mcard ul{ margin:auto 0; padding:0; list-style:none; font-size:.72em; line-height:1.48; color:var(--g); }
 .mcard ul li{ white-space:pre-wrap; }
 .mcard .m-quote{ font-size:.68em; font-style:italic; color:var(--g-dim); margin-top:auto; }
 .mcard .m-sub{ margin-top:5px; border-top:1px dashed var(--line-soft); padding-top:5px; }
@@ -373,16 +376,18 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .fcard ul li{ white-space:pre-wrap; }
 .s7-photo{ flex:1 1 auto; min-height:200px; }
 .s7-note{ font-size:.85em; color:var(--g-dim); letter-spacing:.1em; }
+.s7-opinion{ align-self:center; margin-top:10px; padding:7px 16px; border:1px dashed var(--line); color:var(--g-bright); letter-spacing:.12em; }
 
 /* ============================ SCENE 8 ============================ */
 
-.s8-grid{ display:grid; grid-template-columns:1fr 380px 1fr; gap:18px; flex:1 1 auto; align-content:start; }
+.s8-grid{ display:grid; grid-template-columns:1.08fr 330px 1.08fr; gap:12px; flex:1 1 auto; align-content:start; }
 .tcard{ border:1px solid var(--line); background:var(--panel); padding:10px 13px; overflow:hidden; }
 .tcard .h{ display:flex; gap:8px; align-items:center; font-size:.92em; font-weight:700; color:var(--g-bright); letter-spacing:.06em; }
-.tcard .d{ font-size:.73em; line-height:1.5; color:var(--g-mid); margin-top:3px; }
+.tcard .d{ font-size:.73em; line-height:1.5; color:var(--g); margin-top:3px; }
 .s8-col{ display:flex; flex-direction:column; gap:9px; }
 .s8-center{ display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center; }
-.s8-photo{ width:100%; height:126px; }
+.s8-photo{ width:100%; height:150px; }
+.s8-photo img{ object-position:center 28%; transform:scale(1.12); }
 .s8-dev{ font-size:1.15em; font-weight:700; color:var(--g-bright); letter-spacing:.08em; }
 .s8-log{ font-size:.8em; line-height:1.75; color:var(--g-mid); text-align:left; width:100%; }
 .s8-mid{ font-size:.86em; line-height:1.6; color:var(--g); }
@@ -397,7 +402,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
             font-size:1.35em; font-weight:700; color:var(--g-bright); }
 .s8-note{ font-size:.82em; line-height:1.6; color:var(--g-mid); letter-spacing:.1em; }
 .s8-secret{
-  margin-top:8px; font-size:.76em; line-height:1.65; color:rgba(78,240,138,.34);
+  margin-top:8px; font-size:.8em; line-height:1.65; color:var(--g);
   letter-spacing:.06em; text-align:center;
 }
 .s8-secret b{ font-weight:400; letter-spacing:.16em; }
@@ -407,6 +412,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s9-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; flex:1 1 auto; }
 .s9-panel{ border:1px solid var(--line); padding:13px 16px; }
 .s9-panel .ph{ font-size:.86em; letter-spacing:.16em; color:var(--g-dim); margin-bottom:10px; }
+.s9-panel .ph.strong{ color:var(--g-bright); font-weight:700; }
 .trend{ margin-bottom:12px; position:relative; }
 .trend .th{ display:flex; justify-content:space-between; font-size:.8em; letter-spacing:.08em; color:var(--g-mid); margin-bottom:3px; }
 .trend .th .tag{ color:var(--g-faint); }
@@ -421,7 +427,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 
 .s9-shift{
   border:1px solid var(--line); border-left:3px solid var(--g);
-  padding:9px 14px; font-size:.88em; letter-spacing:.09em; color:var(--g-bright);
+  padding:11px 14px; font-size:1.04em; font-weight:700; letter-spacing:.09em; color:var(--g-bright);
   margin:10px 0;
 }
 .trend--photo{ padding-right:104px; }
@@ -443,7 +449,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .coffee .alert{ font-size:.72em; letter-spacing:.22em; color:var(--red); margin-top:4px; opacity:0; }
 .coffee .alert.in{ opacity:1; animation:alertPulse 1s ease-in-out 3; }
 
-.s9-foot{ margin-top:12px; font-size:.76em; line-height:1.6; color:var(--g-dim);
+.s9-foot{ margin-top:12px; font-size:.88em; line-height:1.7; color:var(--g-bright);
           display:flex; align-items:center; justify-content:space-between; gap:30px; }
 .s9-foot .pbar{ flex:0 0 44%; }
 .s9-foot-tx{ flex:1 1 auto; }
@@ -459,7 +465,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s10-arch .kv b{ color:var(--g-bright); font-weight:500; }
 .s10-hl{ font-size:.88em; line-height:1.85; }
 .s10-saved{ font-size:.9em; line-height:1.8; letter-spacing:.08em; margin-top:12px; }
-.s10-thanks{ font-style:italic; color:var(--g-mid); margin-top:10px; font-size:.95em; }
+.s10-thanks{ color:var(--g-bright); margin-top:12px; font-size:1.35em; font-weight:700; }
 .s10-term{ font-size:1.05em; line-height:1.75; }
 .s10-hbd{
   font-size:2.35em; font-weight:700; letter-spacing:.05em; color:var(--g-bright);
