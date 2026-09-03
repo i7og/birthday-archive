@@ -268,6 +268,13 @@ const SC3 = {
    ========================================================================= */
 function monthCard(m) {
   const c = el('article', 'card mcard' + (m.gap ? ' mcard--gap' : ''));
+  if (m.photoOnly) {
+    c.classList.add('mcard--photo-only');
+    c.appendChild(photoSlot(m.photo, 'm-photo'));
+    c._bars = [];
+    c._words = [];
+    return c;
+  }
   const top = el('div', 'm-top');
   top.append(el('span', 'n', m.n + '.'), el('span', null, m.m));
   c.appendChild(top);

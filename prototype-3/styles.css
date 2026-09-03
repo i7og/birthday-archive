@@ -334,6 +334,10 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .mcard .m-sub{ margin-top:5px; border-top:1px dashed var(--line-soft); padding-top:5px; }
 .mcard .m-photo{ width:100%; height:56px; margin-top:auto; flex:0 0 auto; }
 .mcard .m-photo img{ object-fit:contain; background:#020704; }
+.mcard--photo-only{ padding:0; background:#020704; }
+.mcard--photo-only .m-photo{ width:100%; height:100%; margin:0; border:0; }
+.mcard--photo-only .m-photo::after{ display:none; }
+.mcard--photo-only .m-photo img{ object-fit:cover; }
 .mcard .lock{ font-size:.68em; letter-spacing:.08em; border:1px solid var(--line); padding:2px 8px; align-self:flex-start; color:var(--g-dim); }
 .mcard .lock.un{ color:var(--g-bright); border-color:var(--g); box-shadow:var(--glow); }
 .mcard .ribbon{
