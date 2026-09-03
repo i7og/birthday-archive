@@ -144,7 +144,7 @@ function initControls() {
   SCENES.forEach((s, i) => {
     const b = el('button', null, pad(i + 1));
     b.title = C.menu[i];
-    b.addEventListener('click', () => goTo(i));
+    b.addEventListener('click', () => jumpTo(i));
     dots.appendChild(b);
   });
 
@@ -184,7 +184,7 @@ function initControls() {
   C.menu.forEach((m, i) => {
     const b = el('button');
     b.append(el('span', 'n', pad(i + 1)), el('span', null, m));
-    b.addEventListener('click', () => { $('#menu').classList.remove('on'); goTo(i); });
+    b.addEventListener('click', () => { $('#menu').classList.remove('on'); jumpTo(i); });
     listEl.appendChild(b);
   });
 
@@ -197,8 +197,13 @@ function initControls() {
 
   addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeWin(); $('#menu').classList.remove('on'); return; }
-    if (/^[1-9]$/.test(e.key)) { e.preventDefault(); jumpTo(Number(e.key) - 1); return; }
-    if (e.key === '0') { e.preventDefault(); jumpTo(9); return; }
+    const digit = e.code.match(/^(?:Digit|Numpad)([0-9])$/);
+    if (digit) {
+      e.preventDefault();
+      const n = Number(digit[1]);
+      jumpTo(n === 0 ? 9 : n - 1);
+      return;
+    }
     if (!bootEl.classList.contains('gone')) return;
     if (e.key === 'ArrowRight') { e.preventDefault(); goTo(cur + 1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(cur - 1); }
