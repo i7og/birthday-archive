@@ -117,8 +117,8 @@ const SC1 = {
   },
   async play(ctx, r) {
     E.typingSound = true;
+    E.typingProfile = 0;
     for (let i = 0; i < C.s1.lines.length; i++) {
-      E.typingProfile = i % 3;
       const L = C.s1.lines[i];
       await typeVerdict(ctx, r.lines[i], L.t, L.v);
       await ctx.wait(L.v === 'DENIED' ? 560 : 170);
@@ -160,9 +160,7 @@ const SC2 = {
   async play(ctx, r) {
     E.typingSound = true;
     E.deniedAlert = true;
-    let soundLine = 0;
-    const nextSound = () => { E.typingProfile = soundLine++ % 3; };
-    nextSound();
+    E.typingProfile = 0;
     await typeVerdict(ctx, r.broken, C.s2.broken, 'DENIED');
     await ctx.wait(700);
     /* «чиним» строку */
@@ -173,30 +171,24 @@ const SC2 = {
     await ctx.wait(430);
 
     for (let i = 0; i < C.s2.lines.length; i++) {
-      nextSound();
       await type(ctx, r.lines[i], '> ' + C.s2.lines[i], 62);
       await ctx.wait(150);
     }
     await ctx.wait(420);
-    nextSound();
     await type(ctx, r.observer, C.s2.observer, 22);
     await ctx.wait(320);
     for (let i = 0; i < C.s2.lines2.length; i++) {
-      nextSound();
       await type(ctx, r.lines2[i], '> ' + C.s2.lines2[i], 62);
       await ctx.wait(140);
     }
-    nextSound();
     await type(ctx, r.mission, C.s2.mission, 26);
     r.mission.classList.add('flash');
     await ctx.wait(900);
     for (let i = 0; i < C.s2.lines3.length; i++) {
-      nextSound();
       await type(ctx, r.lines3[i], '> ' + C.s2.lines3[i], 55);
       await ctx.wait(160);
     }
     show(r.warn);
-    nextSound();
     await type(ctx, r.prompt, '> ' + C.s2.prompt, 40);
     r.prompt.appendChild(el('span', 'caret'));
     await ctx.wait(1400);
