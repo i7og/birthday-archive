@@ -571,6 +571,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 /* ============================ ПАНЕЛЬ УПРАВЛЕНИЯ ============================ */
 
 #bar{
+  position:relative; z-index:220;
   flex:0 0 auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   padding:9px 14px; background:#000; border-top:1px solid rgba(78,240,138,.22);
   font-size:12px; letter-spacing:.13em; color:var(--g-dim);
@@ -650,11 +651,13 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   .mapbox{ min-height:280px; }
   .s7-grid,.s8-grid,.s9-grid,.s10-wrap{ grid-template-columns:1fr; }
   #bar{
-    position:fixed; left:0; right:0; bottom:0; z-index:120;
+    position:fixed; left:0; right:0; bottom:0; z-index:220;
     gap:7px; padding:8px 10px calc(8px + env(safe-area-inset-bottom));
     background:rgba(0,0,0,.94); backdrop-filter:blur(4px);
   }
-  #bar #dots, #bar .hint, #btnSpeed, #btnMode, #btnCrt{ display:none; }
+  #bar .hint, #btnSpeed, #btnMode, #btnCrt{ display:none; }
+  #bar{ flex-wrap:nowrap; overflow-x:auto; }
+  #bar #dots{ display:flex; flex:0 0 auto; }
   #bar .sp{ flex:0 0 0; }
   #bar button{ padding:8px 10px; }
   .scene{ padding-bottom:132px; }
