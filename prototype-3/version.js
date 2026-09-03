@@ -1,2 +1,2 @@
-/* Единственный номер ревизии; GitHub Actions увеличивает его при push в main. */
-window.PROTOTYPE_VERSION = '3.5';
+/* Единственный номер ревизии; повышается вручную в каждом обычном коммите. */
+window.PROTOTYPE_VERSION = '3.6';
