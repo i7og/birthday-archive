@@ -12,6 +12,7 @@ let cur = -1;
 const refs = [];
 const roots = [];
 let started = Date.now();
+let startTimers = [];
 
 $('#prototypeVersion').textContent = 'PROTOTYPE ' + window.PROTOTYPE_VERSION;
 
@@ -22,6 +23,7 @@ Snd.load('blip',  '../assets/sounds/matrix-materialize.mp3',  false, .22);
 Snd.load('music', '../assets/sounds/matrix-clubbed-to-death.mp3', true, .26);
 Snd.load('outro', '../assets/sounds/matrix-monitor.mp3',      false, .40);
 Snd.load('win',   '../assets/sounds/rick-and-morty-intro.mp3', false, .50);
+Snd.load('intro', '../assets/sounds/rick-and-morty-intro.mp3', false, .45);
 
 /* ---------------- масштабирование сцены под экран ---------------- */
 function fit() {
@@ -115,6 +117,8 @@ async function goTo(i) {
 
 /* Тестовый переход по цифрам: без заставки, пауз и автоперехода. */
 async function jumpTo(i) {
+  startTimers.forEach(clearTimeout);
+  startTimers = [];
   E.token++; // останавливает текущую сцену или заставку
   Snd.unlockType();
   Snd.stop('intro');
@@ -225,14 +229,39 @@ function togglePause() {
   $('#stage').classList.toggle('is-paused', E.paused);
 }
 
-/* ---------------- быстрый тестовый экран запуска ---------------- */
-function showStartScreen() {
+/* ---------------- полноценная загрузка «старого компьютера» ---------------- */
+const BOOTLOG = [
+  'SYS-41 PERSONAL ARCHIVE OS   v41.0',
+  'COPYRIGHT (C) 1984',
+  '',
+  'MEMORY TEST ................. 640K OK',
+  'DETECTING STORAGE ........... ARCHIVE FOUND',
+  'LOADING KERNEL .............. OK',
+];
+const BOOTLOG2 = [
+  'MOUNTING /memories .......... OK',
+  'CALIBRATING CRT ............. OK',
+  'ARCHIVE READY...............'
+];
+
+async function runBoot() {
   const log = $('#bootLog');
-  log.append(
-    el('div', null, 'PROTOTYPE ' + window.PROTOTYPE_VERSION),
-    el('div', 'dim', '10 SLIDES · QUICK NAVIGATION 1–0'),
-    el('div', null, 'ARCHIVE READY')
-  );
+  const ctx = ctxFor(E.token);
+  const line = t => { const d = el('div'); log.appendChild(d); return d; };
+
+  for (let i = 0; i < BOOTLOG.length; i++) {
+    await type(ctx, line(), BOOTLOG[i], 150);
+    await ctx.wait(90);
+  }
+  const hangLine = line();
+  await type(ctx, hangLine, 'MOUNTING /memories .........', 150);
+  bootEl.classList.add('hangs');
+  await ctx.wait(1900);
+  bootEl.classList.remove('hangs');
+  hangLine.classList.add('dim');
+  for (const t of BOOTLOG2) { await type(ctx, line(), t, 150); await ctx.wait(90); }
+
+  await ctx.wait(400);
   show($('#startBtn'));
   $('#startBtn').focus();
 }
@@ -241,10 +270,19 @@ function start() {
   /* разблокировка звука должна происходить внутри пользовательского клика */
   Snd.unlockType();
   $('#startBtn').disabled = true;
-  bootEl.classList.add('gone');
-  $('#flicker').classList.add('on');
-  started = Date.now();
-  goTo(0);
+  $('#startBtn').textContent = '[ LOADING ARCHIVE ]';
+  Snd.play('intro');
+  startTimers.push(setTimeout(() => {
+    Snd.stop('intro');
+    bootEl.classList.add('gone');
+    $('#flicker').classList.add('on');
+    started = Date.now();
+    gapEl.classList.add('on');
+    startTimers.push(setTimeout(() => {
+      gapEl.classList.remove('on');
+      goTo(0);
+    }, 1000));
+  }, 8000));
 }
 
 /* ---------------- старт ---------------- */
@@ -252,4 +290,4 @@ buildAll();
 initControls();
 fit();
 $('#startBtn').addEventListener('click', start);
-showStartScreen();
+runBoot().catch(() => {});
