@@ -234,6 +234,7 @@ const SC3 = {
     return { rowNodes, sysNodes, alert, scanbox, cap, dino };
   },
   async play(ctx, r) {
+    show(r.dino);
     E.typingSound = true;
     E.typingProfile = 0;
     for (let i = 0; i < C.s3.rows.length; i++) {
@@ -259,7 +260,6 @@ const SC3 = {
     r.scanbox.classList.add('scanning');
     await ctx.wait(4600);
     show(r.cap);
-    show(r.dino);
   }
 };
 

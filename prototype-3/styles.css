@@ -239,11 +239,24 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 }
 .dino.in{ opacity:.30; }              /* «менее ярко» по ТЗ */
 .dino svg{ width:120px; height:auto; }
-.dino.in svg{ animation:dinoRun .62s steps(2,end) infinite, dinoJump 2.2s ease-in-out infinite; }
-@keyframes dinoRun{ 50%{ transform:translateX(3px); } }
-@keyframes dinoJump{ 0%,48%,100%{ translate:0 0; } 58%,72%{ translate:0 -34px; } }
-.dino-course{ flex:1; display:flex; justify-content:space-around; align-items:flex-end; font-size:30px; opacity:.65; border-bottom:1px dashed var(--g-dim); }
-.dino-course i{ font-style:normal; }
+.dino.in svg{ animation:dinoJump 2.2s cubic-bezier(.36,.02,.42,1) infinite; }
+@keyframes dinoJump{
+  0%,52%,100%{ transform:translateY(0) rotate(0); }
+  61%,72%{ transform:translateY(-48px) rotate(-2deg); }
+  82%{ transform:translateY(-18px) rotate(1deg); }
+}
+.dino-course{
+  position:relative; flex:1; height:62px; overflow:hidden;
+  font-size:30px; opacity:.65; border-bottom:1px dashed var(--g-dim);
+}
+.dino-course i{
+  position:absolute; right:-48px; bottom:0; font-style:normal;
+  animation:cactusRun 8.8s linear infinite;
+}
+.dino-course i:nth-child(2){ animation-delay:-2.2s; }
+.dino-course i:nth-child(3){ animation-delay:-4.4s; }
+.dino-course i:nth-child(4){ animation-delay:-6.6s; }
+@keyframes cactusRun{ from{ transform:translateX(0); } to{ transform:translateX(-1320px); } }
 .dino .dino-note{ font-size:.8em; letter-spacing:.16em; color:var(--g-dim); padding-bottom:8px; }
 .dino .ground{
   position:absolute; left:0; bottom:-6px; width:190px; height:1px;
