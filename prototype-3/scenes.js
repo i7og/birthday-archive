@@ -116,7 +116,7 @@ const SC1 = {
     return { lines, bar, lbl, load };
   },
   async play(ctx, r) {
-    Snd.play('boot');
+    E.typingSound = true;
     for (let i = 0; i < C.s1.lines.length; i++) {
       const L = C.s1.lines[i];
       await typeVerdict(ctx, r.lines[i], L.t, L.v);
@@ -128,6 +128,7 @@ const SC1 = {
     await ctx.wait(260);
     await runBar(ctx, r.bar, C.s1.loadTo, 2300);
     await ctx.wait(1100);
+    E.typingSound = false;
   }
 };
 

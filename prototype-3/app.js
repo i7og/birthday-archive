@@ -66,6 +66,7 @@ function rebuild(i) {
 /* ---------------- переход к сцене ---------------- */
 async function goTo(i) {
   if (i < 0 || i >= SCENES.length) return;
+  E.typingSound = false;
   if (cur >= 0 && SCENES[cur].stop) SCENES[cur].stop(refs[cur]);
   if (i < 3 || i > 8) Snd.stop('music');
 
@@ -242,9 +243,6 @@ async function runBoot() {
 function start() {
   /* разблокировка звука должна происходить внутри пользовательского клика */
   Snd.unlockType();
-  Object.values(Snd.tracks).forEach(a => {
-    try { a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {}); } catch (e) {}
-  });
   $('#startBtn').disabled = true;
   $('#startBtn').textContent = '[ LOADING ARCHIVE ]';
   Snd.play('intro');

@@ -7,7 +7,8 @@ const E = {
   instant: false,   // «доиграть кадр мгновенно»
   speed: 1,
   token: 0,        // токен текущего проигрывания сцены
-  autoplay: true
+  autoplay: true,
+  typingSound: false
 };
 
 const SKIP = Symbol('scene-skipped');
@@ -57,7 +58,7 @@ async function type(ctx, node, text, cps = 55) {
   for (let i = 0; i < text.length; i++) {
     node.insertBefore(document.createTextNode(text[i]), caret);
     const c = text[i];
-    if (!/\s/.test(c)) Snd.typeClick(c);
+    if (E.typingSound && !/\s/.test(c)) Snd.typeClick(c);
     await ctx.wait(delay * (c === '.' || c === ',' || c === ':' ? 3 : 1));
   }
   caret.remove();
@@ -237,12 +238,12 @@ const Snd = {
     const punctuation = /[.,:;!?\-—]/.test(char);
     osc.type = 'square';
     osc.frequency.setValueAtTime((punctuation ? 150 : 185) + Math.random() * 28, now);
-    gain.gain.setValueAtTime(.018 + Math.random() * .009, now);
-    gain.gain.exponentialRampToValueAtTime(.0001, now + .026);
+    gain.gain.setValueAtTime(.055 + Math.random() * .018, now);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + .038);
     osc.connect(gain);
     gain.connect(ac.destination);
     osc.start(now);
-    osc.stop(now + .03);
+    osc.stop(now + .042);
   },
   load(name, src, loop, vol) {
     const a = document.createElement('audio');
