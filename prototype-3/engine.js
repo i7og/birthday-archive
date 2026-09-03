@@ -46,8 +46,8 @@ function ctxFor(token) {
    идут буквы. 1 = исходный темп, 0.6 = примерно на 4–5 секунд дольше на кадр.
    WORD_GAP — пауза между словами там, где текст выводится по словам.
 --------------------------------------------------------------------------- */
-const TYPE_SLOW = 0.52;
-const WORD_GAP  = 58;
+const TYPE_SLOW = 0.40;
+const WORD_GAP  = 86;
 
 async function type(ctx, node, text, cps = 55) {
   node.textContent = '';
@@ -170,7 +170,6 @@ function photoSlot(cfg, cls) {
     '<path d="M8 4.5l1.6-2h4.8l1.6 2"/></svg>';
   ph.appendChild(el('span', null, cfg.label || 'PHOTO / SCAN'));
   box.append(img, ph);
-  box.appendChild(el('span', 'zoom', '[ OPEN ]'));
   box.addEventListener('click', () => openWin(cfg));
   box.tabIndex = 0;
   box.addEventListener('keydown', e => { if (e.key === 'Enter') openWin(cfg); });

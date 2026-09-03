@@ -22,6 +22,7 @@ Snd.load('blip',  '../assets/sounds/matrix-materialize.mp3',  false, .22);
 Snd.load('music', '../assets/sounds/matrix-clubbed-to-death.mp3', true, .26);
 Snd.load('outro', '../assets/sounds/matrix-monitor.mp3',      false, .40);
 Snd.load('win',   '../assets/sounds/rick-and-morty-intro.mp3', false, .50);
+Snd.load('intro', '../assets/sounds/rick-and-morty-intro.mp3', false, .45);
 
 /* ---------------- масштабирование сцены под экран ---------------- */
 function fit() {
@@ -72,22 +73,29 @@ async function goTo(i) {
   const token = E.token;
   E.paused = false;
   $('#btnPause').textContent = '❚❚ PAUSE';
-  gapEl.classList.remove('on');
+  gapEl.classList.toggle('on', i === 9);
 
-  /* Перед годовым обзором: короткий чёрный экран, затем старт Matrix-темы. */
+  /* Перед годовым обзором сцена уже строится под чёрной шторкой. */
   if (i === 3) {
     gapEl.classList.add('on');
     Snd.play('music');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    if (E.token !== token) return;
-    gapEl.classList.remove('on');
   }
-
   rebuild(i);
   roots.forEach((n, k) => n.classList.toggle('active', k === i));
   cur = i;
   updateHUD();
   fit();
+
+  if (i === 3) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (E.token !== token) return;
+    gapEl.classList.remove('on');
+  }
+  if (i === 9) {
+    await new Promise(resolve => setTimeout(resolve, 650));
+    if (E.token !== token) return;
+    gapEl.classList.remove('on');
+  }
 
   const ctx = ctxFor(token);
   try {
@@ -102,7 +110,7 @@ async function goTo(i) {
   if (i === 8) {
     await Snd.fadeOut('music', 2200);
     gapEl.classList.add('on');
-    try { await ctx.wait(4500); } catch (e) { gapEl.classList.remove('on'); return; }
+    try { await ctx.wait(2000); } catch (e) { gapEl.classList.remove('on'); return; }
     gapEl.classList.remove('on');
   }
   if (E.token !== token) return;
@@ -205,7 +213,7 @@ const BOOTLOG = [
 const BOOTLOG2 = [
   'MOUNTING /memories .......... OK',
   'CALIBRATING CRT ............. OK',
-  'ARCHIVE READY'
+  'ARCHIVE READY...............'
 ];
 
 async function runBoot() {
@@ -236,14 +244,20 @@ function start() {
   Object.values(Snd.tracks).forEach(a => {
     try { a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {}); } catch (e) {}
   });
-  bootEl.classList.add('gone');
-  $('#flicker').classList.add('on');
-  started = Date.now();
-  gapEl.classList.add('on');
+  $('#startBtn').disabled = true;
+  $('#startBtn').textContent = '[ LOADING ARCHIVE ]';
+  Snd.play('intro');
   setTimeout(() => {
-    gapEl.classList.remove('on');
-    goTo(0);
-  }, 1000);
+    Snd.stop('intro');
+    bootEl.classList.add('gone');
+    $('#flicker').classList.add('on');
+    started = Date.now();
+    gapEl.classList.add('on');
+    setTimeout(() => {
+      gapEl.classList.remove('on');
+      goTo(0);
+    }, 1000);
+  }, 8000);
 }
 
 /* ---------------- старт ---------------- */

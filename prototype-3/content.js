@@ -76,25 +76,25 @@ window.CONTENT = {
   /* ---------- КАДР 4 ---------- */
   s4: {
     title: "12 MONTHS OF VERSION 41.0",
-    meta: ["YEAR IN REVIEW · OCTOBER 2025 – SEPTEMBER 2026", "11 ENTRIES", "1 GAP IN THE LOG", "ONE EPIC VERSION"],
+    meta: ["YEAR IN REVIEW · OCTOBER 2025 – SEPTEMBER 2026", "12 ENTRIES", "2 GAPS IN THE LOG", "ONE EPIC VERSION"],
     noteA: "DATA SOURCE: STORIES • GOSSIPS • ASSUMPTIONS",
     noteB: "OBSERVER HAS ENTERED THE SYSTEM",
-    footer: "José Antonio Cuenca Caño — Version 41.0",
+    footer: "",
     months: [
       { id:"oct", n:"01", m:"OCTOBER 2025", icon:"⚠", gap:true,
         head:"DATA MISSED",
-        body:["HISTORICAL DATA UNAVAILABLE.","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
+        body:["HISTORICAL DATA UNAVAILABLE","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
       { id:"nov", n:"02", m:"NOVEMBER 2025", icon:"⚠", gap:true,
         head:"DATA MISSED",
-        body:["HISTORICAL DATA UNAVAILABLE.","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
+        body:["HISTORICAL DATA UNAVAILABLE","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
       { id:"dec", n:"03", m:"DECEMBER 2025", icon:"🐶",
         head:"NEW IDEA DETECTED",
         body:["POTENTIAL NEW LIFE COMPANION: DOG 🐶","STATUS: CONSIDERING","FUTURE DOG OWNER: ? MAYBE"],
         photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" },
         lock:{ from:"DECISION: PENDING", to:"DECISION: PENDING" },
-        quote:"A new chapter was under consideration." },
+        quote:"A NEW CHAPTER UNDER CONSIDERATION: ???" },
 
       { id:"jan", n:"04", m:"JANUARY 2026", icon:"🔄",
         head:"DECISION UPDATED",
@@ -137,12 +137,13 @@ window.CONTENT = {
         body:["🌡️ CITY EXPLORATION — HARD MODE","TEMPERATURE: 🔥🔥🔥🔥🔥","THE HIGHEST DEGREE OF THE YEAR","OBJECTIVE: EXPLORE THE CITIES ANYWAY"],
         lock:{ from:"STATUS: COMPLETED ✅", to:"STATUS: COMPLETED ✅" },
         sub:{ head:"🏆 WORLD CUP MODE",
-              body:["🇪🇸 TEAM SELECTED: SPAIN","MATCHES WATCHED: NO DATA AVAILABLE","EMOTIONAL INVESTMENT: 100%"] } },
+              body:["🇪🇸 TEAM SELECTED: SPAIN","MATCHES WATCHED: NO DATA AVAILABLE"],
+              lock:"EMOTIONAL INVESTMENT: 100%" } },
 
       { id:"aug", n:"11", m:"AUGUST 2026", icon:"🏖️",
         head:"CHILL MODE ACTIVATED",
         body:["🌊 TORREMOLINOS BEACH TIME","🍧 SOLERO: MANY","👯 FRIENDS TIME: PLENTY","🌾 BUCKWHEAT: TRIED"],
-        lock:{ from:"VIBES: CHILL", to:"VIBES: CHILL" },
+        lock:{ from:"VIBES: CHILL 😎", to:"VIBES: CHILL 😎" },
         photo:{ src:"photos/s4-august-beach.jpg", label:"PHOTO / SCAN", title:"TORREMOLINOS — AUGUST 2026" } },
 
       { id:"sep", n:"12", m:"SEPTEMBER 2026", icon:"🎂",
@@ -164,12 +165,12 @@ window.CONTENT = {
       { key:"RELATIONSHIP", caption:"RELATIONSHIP SKILL LEVEL: MAX",  src:"photos/s5-relationship.jpg" }
     ],
     summary: ["SOCIAL MODULE: 4 OF 4 CONNECTIONS ACTIVE ✓", "POSITIVE IMPACT: CONFIRMED ✓", "▶ MAKING LIFE BETTER"],
-    footer: "José Antonio Cuenca Caño — version 41.0"
+    footer: ""
   },
 
   /* ---------- КАДР 6 ---------- */
   s6: {
-    title: "NEW LOCATIONS DISCOVERED",
+    title: "KNOWN LOCATIONS",
     region: "ANDALUCÍA, SPAIN",
     status: ["EXPLORATION STATUS: ACTIVE", "BEYOND THE USUAL ROUTES"],
     /* порядок появления строго по ТЗ */
@@ -191,7 +192,7 @@ window.CONTENT = {
       { name:"PICASSO MUSEUM",   x:120, y:198 },
       { name:"CITY CENTRE",      x:236, y:246 }
     ],
-    summary: ["TOTAL LOCATIONS DISCOVERED: 8", "MÁLAGA SUB-LOCATIONS: 5"],
+    summary: ["TOTAL LOCATIONS: 8", "MÁLAGA SUB-LOCATIONS: 5"],
     highlight: ["TORREMOLINOS", "THE MOST VISITED LOCATION OF VERSION 41.0"]
   },
 
@@ -200,7 +201,7 @@ window.CONTENT = {
     title: "JOSE'S LEGACY FEATURES",
     sub: "SOME FEATURES HAVE BEEN RUNNING FOR YEARS",
     opinion: "OPINION DATABASE: EXTREMELY SPECIFIC ✓",
-    footnote: ["End of log", "Saving data….", "Data saved"],
+    footnote: ["END OF LOG", "SAVING DATA", "DATA SAVED"],
     version: "version 41.0",
     decorations: [
       { src:"photos/s7-decoration-1.png", label:"ARCHIVE INSERT", title:"LEGACY FEATURE — INSERT 1" },
@@ -227,19 +228,19 @@ window.CONTENT = {
         "TARTAR FAMILY PIE RECIPE: TRIED ✓"
       ]},
       { n:"04", t:"JOSÉ'S OFFICIAL OPINIONS™ 🗣️", items:[
-        "📱 WHATSAPP: QUESTIONABLE COMMUNICATION TECHNOLOGY.",
+        "📱 WHATSAPP: QUESTIONABLE COMMUNICATION TECHNOLOGY",
         "🕊️ PIGEONS: PREFERRED COMMUNICATION PROTOCOL",
         "   WHY USE WHATSAPP IF PIGEONS EXIST?",
         "   STATUS: PENDING INVESTIGATION",
         "🥘 PAELLA — TIME-SENSITIVE FOOD",
         "   BEFORE 16:00: ACCEPTABLE ✓",
         "   AFTER 16:00: ABSOLUTELY NOT ❌",
-        "   PERSONAL RULE: PAELLA.EXE HAS WORKING HOURS.",
+        "   PERSONAL RULE: PAELLA.EXE HAS WORKING HOURS",
         "🍚 LOMO CON PATATA + COFFEE: REJECTED ❌",
         "🍰 PISTACHIO CHEESECAKE + COFFEE: SUCCESSFUL ✓"
       ]},
       { n:"05", t:"FAMILY TECH SUPPORT", items:[
-        "HELPS HIS FAMILY WITH TECHNICAL PROBLEMS.",
+        "HELPS HIS FAMILY WITH TECHNICAL PROBLEMS",
         "STATUS: ALWAYS AVAILABLE ✓"
       ]},
       { n:"06", t:"JOSÉ'S QUIRKS", items:[
@@ -262,13 +263,13 @@ window.CONTENT = {
     photo: { src:"photos/s8-portrait.jpg", label:"PHOTO / SCAN", title:"CORE CHARACTER" },
     traits: [
       { i:"🫶", t:"KIND, THOUGHTFUL & CARING", d:"KIND BY NATURE, THOUGHTFUL IN THE WAY YOU TREAT OTHERS, AND ALWAYS THERE FOR THE PEOPLE YOU LOVE" },
-      { i:"👂", t:"ATTENTIVE",             d:"YOU LISTEN, YOU NOTICE THE LITTLE THINGS, AND YOU REMEMBER." },
+      { i:"👂", t:"ATTENTIVE",             d:"YOU LISTEN, YOU NOTICE THE LITTLE THINGS, AND YOU REMEMBER" },
       { i:"💡", t:"PROBLEM SOLVER",        d:"WHATEVER LIFE THROWS YOUR WAY, YOU KEEP A COOL HEAD, FIGURE THINGS OUT, AND FIND A WAY FORWARD" },
-      { i:"😄", t:"A GREAT SENSE OF HUMOUR", d:"YOU MAKE PEOPLE LAUGH, AND SOMEHOW, LIFE WITH YOU IS NEVER BORING." },
-      { i:"🌿", t:"WARM & GENUINE",        d:"YOU MAKE PEOPLE FEEL ACCEPTED, VALUED, AND FREE TO BE THEMSELVES." },
-      { i:"🧠", t:"CURIOUS & OPEN-MINDED", d:"YOU'RE CURIOUS ABOUT PEOPLE, LIFE, AND EVERYTHING THERE IS TO DISCOVER." },
-      { i:"🌱", t:"ALWAYS GROWING",        d:"YOU KEEP LEARNING, EXPLORING, AND BECOMING AN EVEN BETTER VERSION OF YOURSELF." },
-      { i:"👨‍👩‍👦", t:"FAMILY-ORIENTED",  d:"YOUR PEOPLE MATTER TO YOU, AND FAMILY ALWAYS HAS A SPECIAL PLACE IN YOUR HEART." }
+      { i:"😄", t:"A GREAT SENSE OF HUMOUR", d:"YOU MAKE PEOPLE LAUGH, AND SOMEHOW, LIFE WITH YOU IS NEVER BORING" },
+      { i:"🌿", t:"WARM & GENUINE",        d:"YOU MAKE PEOPLE FEEL ACCEPTED, VALUED, AND FREE TO BE THEMSELVES" },
+      { i:"🧠", t:"CURIOUS & OPEN-MINDED", d:"YOU'RE CURIOUS ABOUT PEOPLE, LIFE, AND EVERYTHING THERE IS TO DISCOVER" },
+      { i:"🌱", t:"ALWAYS GROWING",        d:"YOU KEEP LEARNING, EXPLORING, AND BECOMING AN EVEN BETTER VERSION OF YOURSELF" },
+      { i:"👨‍👩‍👦", t:"FAMILY-ORIENTED",  d:"YOUR PEOPLE MATTER TO YOU, AND FAMILY ALWAYS HAS A SPECIAL PLACE IN YOUR HEART" }
     ],
     centerTop: "CHARACTER DEVELOPMENT +100%",
     centerLog: [
@@ -277,10 +278,10 @@ window.CONTENT = {
       "POSITIVE TRAITS: TOO MANY TO LIST",
       "SECRET FEATURES: FRIENDS & FAMILY ONLY 🔓"
     ],
-    centerMid: ["AND SOMEHOW, YOU BECAME EVEN BETTER.", "EVEN COOLER. EVEN KINDER. AND STILL KRASAFCHI. ✓"],
+    centerMid: ["AND SOMEHOW YOU BECAME EVEN BETTER", "EVEN COOLER · EVEN KINDER · AND STILL KRASAFCHIK 🫶"],
     centerStatus: "> STATUS: AMAZING HUMAN ✓",
     score: "PERSONALITY SCORE",
-    note: ["SYSTEM NOTE:", "KEEP BEING YOU.", "THE WORLD NEEDS IT."],
+    note: ["SYSTEM NOTE: KEEP BEING YOU. THE WORLD NEEDS IT."],
     secret: ["PRIMARY OBSERVER'S NOTE",
              "AFTER ALL THE DATA, STORIES, PLACES, ACHIEVEMENTS AND RANDOM FACTS…",
              "I HAVE TO ADMIT: I ADMIRE YOU 🫶"]
@@ -318,11 +319,11 @@ window.CONTENT = {
       { i:"🚿", label:"SINK",                  v:"1" },
       { i:"🍽️", label:"DISHWASHER",           v:"1" },
       { i:"🔥", label:"BOILER",                v:"1" },
-      { i:"🖼️", label:"PAINTINGS & STUFF HUNG", v:"OBSERVER LOST COUNT." }
+      { i:"🖼️", label:"PAINTINGS & STUFF HUNG", v:"OBSERVER LOST COUNT" }
     ],
-    footnote: ["PRIMARY OBSERVER: DATA COLLECTION ONGOING……..",
+    footnote: ["PRIMARY OBSERVER: DATA COLLECTION ONGOING...",
                "DISCLAIMER: SOME DATA POINTS MAY BE INCOMPLETE OR INACCURATE"],
-    progress: { label:"VERSION 42.0 IN PROGRESS — UPDATE", to:89 }
+    progress: { label:"VERSION 42.0 IN PROGRESS · UPDATE", to:89 }
   },
 
   /* ---------- КАДР 10 ---------- */
@@ -352,13 +353,13 @@ window.CONTENT = {
       "INSTALLING NEW BEAUTIFUL MEMORIES... OK"
     ],
     done: "VERSION 42.0 SUCCESSFULLY INSTALLED",
-    hbd: "HAPPY BIRTHDAY, JOSÉ ANTONIO CUENCA CAÑO!",
+    hbd: "HAPPY BIRTHDAY, JOSÉ ANTONIO CUENCA CAÑO!!!",
     wishes: [
-      "THE BEST IS YET TO COME.",
+      "THE BEST IS YET TO COME!",
       "EVERY NEW VERSION OF YOU MAKES THE WORLD A LITTLE BETTER. ❤️",
-      "KEEP EXPLORING. KEEP LAUGHING. KEEP BEING YOU."
+      "KEEP EXPLORING! KEEP LAUGHING! KEEP BEING YOU!"
     ],
-    tail: ["> LIFE: IN PROGRESS", "> NEXT UPDATE: 43.0"]
+    tail: ["> LIFE: IN PROGRESS   > NEXT UPDATE: 43.0"]
   },
 
   /* ---------- ПОДПИСИ СЦЕН ДЛЯ МЕНЮ ---------- */
@@ -368,7 +369,7 @@ window.CONTENT = {
     "SUBJECT CARD",
     "12 MONTHS OF VERSION 41.0",
     "PEOPLE AND CONNECTIONS",
-    "NEW LOCATIONS DISCOVERED",
+    "KNOWN LOCATIONS",
     "JOSE'S LEGACY FEATURES",
     "CORE CHARACTER",
     "NUMBERS & STATISTICS",

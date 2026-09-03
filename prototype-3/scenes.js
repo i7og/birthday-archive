@@ -49,6 +49,9 @@ function dinoNode(note) {
   R.forEach(r => svg.appendChild(ns('rect', { x: r[0], y: r[1], width: r[2], height: r[3], fill: 'currentColor' })));
   svg.appendChild(ns('rect', { x: 46, y: 7, width: 3, height: 3, fill: '#030d07' }));
   d.appendChild(svg);
+  const course = el('div', 'dino-course');
+  for (let i = 0; i < 4; i++) course.appendChild(el('i', null, '🌵'));
+  d.appendChild(course);
   d.appendChild(el('div', 'dino-note', note));
   d.appendChild(el('div', 'ground'));
   return d;
@@ -71,7 +74,6 @@ function collageSlot(base, n, title) {
     grid.appendChild(cell);
   }
   box.appendChild(grid);
-  box.appendChild(el('span', 'zoom', '[ COLLAGE ]'));
   return box;
 }
 
@@ -111,7 +113,7 @@ const SC1 = {
     const bar = makeBar('', 44);
     load.append(lbl, bar);
     root.append(term, load);
-    return { lines, bar, lbl };
+    return { lines, bar, lbl, load };
   },
   async play(ctx, r) {
     Snd.play('boot');
@@ -121,6 +123,7 @@ const SC1 = {
       await ctx.wait(L.v === 'DENIED' ? 560 : 170);
     }
     await ctx.wait(320);
+    show(r.load);
     show(r.lbl);
     await ctx.wait(260);
     await runBar(ctx, r.bar, C.s1.loadTo, 2300);
@@ -237,16 +240,18 @@ const SC3 = {
     }
     await ctx.wait(300);
     show(r.alert);
-    Snd.play('scan');
-    await ctx.wait(650);
+    r.alert.classList.add('triple-flash');
+    await ctx.wait(900);
     show(r.scanbox);
-    await ctx.wait(500);
+    r.scanbox.classList.add('photo-reveal');
+    await ctx.wait(900);
+    Snd.play('scan');
     r.scanbox.classList.add('scanning');
     await ctx.wait(4600);
     show(r.cap);
     await ctx.wait(500);
     show(r.dino);
-    await ctx.wait(1300);
+    await ctx.wait(2000);
   }
 };
 
@@ -292,6 +297,7 @@ function monthCard(m) {
     const s = el('div', 'm-sub');
     s.appendChild(el('div', 'sh', m.sub.head));
     s.appendChild(list(m.sub.body));
+    if (m.sub.lock) s.appendChild(el('div', 'lock un', m.sub.lock));
     c.appendChild(s);
   }
   if (m.quote) c.appendChild(el('div', 'm-quote', m.quote));
@@ -323,18 +329,18 @@ const SC4 = {
   },
   async play(ctx, r) {
     show(r.H.t); show(r.H.rule);
-    await ctx.wait(560);
+    await ctx.wait(1300);
     show(r.meta);
     await ctx.wait(520);
     for (let i = 0; i < r.cards.length; i++) {
       const c = r.cards[i];
       c.classList.add('enter');
-      await ctx.wait(380);
+      await ctx.wait(620);
       c.classList.remove('enter');
       c.classList.add('settle');
       await ctx.wait(260);
 
-      await revealWords(ctx, c._words);
+      await revealWords(ctx, c._words, 105);
       for (const [bar, to] of (c._bars || [])) await runBar(ctx, bar, to, 900);
       if (c._loaders) {
         for (const b of c._loaders) { b.textContent = 'LOADING'; await ctx.wait(150); }
@@ -346,15 +352,15 @@ const SC4 = {
       }
       if (i === 1) { show(r.noteA); await ctx.wait(520); }
       if (i === 3) {
+        await ctx.wait(1100);
         const music = Snd.tracks.music;
-        if (music && !music._dead) music.currentTime = 25;
-        await ctx.wait(650);
+        if (music && !music._dead) music.currentTime = 26;
         show(r.noteB);
-        await ctx.wait(520);
+        await ctx.wait(900);
       }
       await ctx.wait(130);
     }
-    show(r.foot);
+    if (C.s4.footer) show(r.foot);
     await ctx.wait(1600);
   }
 };
@@ -369,7 +375,7 @@ const SC5 = {
     const H = head(C.s5.title, { quote: C.s5.quote });
     const grid = el('div', 's5-grid');
     const blocks = C.s5.blocks.map(b => {
-      const w = el('div', 'card s5-block');
+      const w = el('div', 'card s5-block s5-' + b.key.toLowerCase());
       w.appendChild(el('div', 'k', b.key));
       const ph = b.collage
         ? collageSlot('photos/s5-friends', 3, 'FRIENDS')
@@ -395,23 +401,23 @@ const SC5 = {
     return { H, blocks, sum, bar, foot };
   },
   async play(ctx, r) {
-    show(r.H.t); show(r.H.rule);
-    await ctx.wait(360);
+    await type(ctx, r.H.t, C.s5.title, 28); show(r.H.rule);
+    await ctx.wait(700);
     show(r.H.quote);
-    await ctx.wait(520);
+    await ctx.wait(2000);
     for (const b of r.blocks) {
       b.classList.add('enter');
-      await ctx.wait(430);
+      await ctx.wait(850);
       b.classList.remove('enter');
       b.classList.add('settle');
-      await revealWords(ctx, b._words);
-      await ctx.wait(300);
+      await revealWords(ctx, b._words, 95);
+      await ctx.wait(1200);
     }
     await ctx.wait(300);
     show(r.sum);
     await ctx.wait(400);
     await runBar(ctx, r.bar, 100, 1500);
-    show(r.foot);
+    if (C.s5.footer) show(r.foot);
     await ctx.wait(1500);
   }
 };
@@ -513,14 +519,13 @@ const SC6 = {
     return { H, outline, pins, cityPin, zoom, zpins, status, sum, hot };
   },
   async play(ctx, r) {
-    show(r.H.t); show(r.H.rule);
-    await ctx.wait(400);
+    await type(ctx, r.H.t, C.s6.title, 28); show(r.H.rule);
+    await ctx.wait(1200);
     r.outline.classList.add('draw');
     await ctx.wait(2000);
+    show(r.cityPin); Snd.play('blip'); await ctx.wait(760);
     for (const p of r.pins) { show(p); Snd.play('blip'); await ctx.wait(620); }
     await ctx.wait(400);
-    show(r.cityPin);
-    await ctx.wait(600);
     show(r.zoom);
     await ctx.wait(800);
     for (const p of r.zpins) { show(p); await ctx.wait(480); }
@@ -558,26 +563,27 @@ const SC7 = {
       return node;
     });
     const opinion = el('div', 's7-opinion rv', C.s7.opinion);
+    cards[3].appendChild(opinion);
     const foot = el('div', 's7-foot');
     const note = el('div', 's7-note rv');
-    C.s7.footnote.forEach(l => note.appendChild(el('div', null, '> ' + l)));
+    C.s7.footnote.forEach(l => note.appendChild(el('span', null, l)));
     const ver = el('div', 's7-note rv', C.s7.version);
     foot.append(note, ver);
-    root.append(H.node, H.rule, grid, decor, opinion, foot);
+    root.append(H.node, H.rule, grid, decor, foot);
     return { H, cards, decorNodes, opinion, note, ver };
   },
   async play(ctx, r) {
-    show(r.H.t); show(r.H.rule);
-    await ctx.wait(340);
-    show(r.H.sub);
-    await ctx.wait(460);
+    await type(ctx, r.H.t, C.s7.title, 28); show(r.H.rule);
+    await ctx.wait(500);
+    await type(ctx, r.H.sub, C.s7.sub, 32);
+    await ctx.wait(700);
     for (const c of r.cards) {
       c.classList.add('enter');
-      await ctx.wait(400);
+      await ctx.wait(650);
       c.classList.remove('enter');
       c.classList.add('settle');
-      if (c._words) await revealWords(ctx, c._words, 34);
-      await ctx.wait(200);
+      if (c._words) await revealWords(ctx, c._words, 90);
+      await ctx.wait(550);
     }
     await ctx.wait(400);
     for (const photo of r.decorNodes) {
@@ -651,10 +657,10 @@ const SC8 = {
     return { H, cardsL, cardsR, photo, status, dev, logNodes, mid, st, fg, num, CIRC, scoreLbl, note, secret };
   },
   async play(ctx, r) {
-    show(r.H.t); show(r.H.rule);
-    await ctx.wait(320);
+    await type(ctx, r.H.t, C.s8.title, 28); show(r.H.rule);
+    await ctx.wait(520);
     show(r.H.sub);
-    await ctx.wait(400);
+    await ctx.wait(1100);
     r.photo.classList.add('enter');
     await ctx.wait(400);
     r.photo.classList.remove('enter');
@@ -668,11 +674,11 @@ const SC8 = {
     for (let i = 0; i < 4; i++) { inter.push(r.cardsL[i]); inter.push(r.cardsR[i]); }
     for (const c of inter) {
       c.classList.add('enter');
-      await ctx.wait(330);
+      await ctx.wait(620);
       c.classList.remove('enter');
       c.classList.add('settle');
-      if (c._words) await revealWords(ctx, c._words, 30);
-      await ctx.wait(150);
+      if (c._words) await revealWords(ctx, c._words, 82);
+      await ctx.wait(420);
     }
 
     await ctx.wait(300);
@@ -771,9 +777,10 @@ const SC9 = {
     grid.append(left, right);
 
     const foot = el('div', 's9-foot rv');
-    C.s9.footnote.forEach(l => foot.appendChild(el('div', null, l)));
+    const footText = el('div', 's9-foot-tx');
+    C.s9.footnote.forEach(l => footText.appendChild(el('div', null, l)));
     const bar = makeBar(C.s9.progress.label, 40, 'sm');
-    foot.appendChild(bar);
+    foot.append(footText, bar);
 
     root.append(H.node, H.rule, grid, foot);
     return { H, trendsTitle, statsTitle, repairsTitle, trends, shift, stats, cv, calert, repairs, foot, bar };
@@ -839,9 +846,9 @@ const SC10 = {
     const term = el('div', 's10-term');
     const promptNodes = C.s10.prompt.map(() => { const d = el('div', 'ln'); term.appendChild(d); return d; });
     const bar = makeBar(C.s10.installLabel, 40);
-    term.appendChild(bar);
     const sysNodes = C.s10.systems.map(() => { const d = el('div', 'ln'); term.appendChild(d); return d; });
     const logNodes = C.s10.installLog.map(() => { const d = el('div', 'ln'); term.appendChild(d); return d; });
+    term.appendChild(bar);
     const done = el('div', 's10-dev rv', C.s10.done);
     term.appendChild(done);
 
@@ -875,8 +882,6 @@ const SC10 = {
       await type(ctx, r.promptNodes[i], C.s10.prompt[i], 40);
       await ctx.wait(400);
     }
-    await runBar(ctx, r.bar, 100, 2400);
-    await ctx.wait(300);
     for (let i = 0; i < C.s10.systems.length; i++) {
       await type(ctx, r.sysNodes[i], C.s10.systems[i], 90);
       await ctx.wait(130);
@@ -886,6 +891,7 @@ const SC10 = {
       await type(ctx, r.logNodes[i], '> ' + C.s10.installLog[i], 110);
       await ctx.wait(140);
     }
+    await runBar(ctx, r.bar, 100, 2400);
     await ctx.wait(400);
     show(r.done);
     await ctx.wait(800);
