@@ -239,47 +239,53 @@ const Snd = {
     const ac = this.typeCtx;
     if (!ac || ac.state !== 'running') return;
 
-    /* Очень короткий механический щелчок: слышен как клавиша, а не как тон. */
+    /* Физическая клавиша: шумовой удар + резонанс корпуса + тихое отпускание. */
     const now = ac.currentTime;
     if (now - this.lastTypeAt < .018) return;
     this.lastTypeAt = now;
     const punctuation = /[.,:;!?\-—]/.test(char);
     const profile = E.typingProfile % 3;
 
-    const tone = (wave, fromHz, toHz, volume, length) => {
-      const osc = ac.createOscillator();
+    const keyHit = ({ bodyHz, clickHz, volume, length, release }) => {
+      const frames = Math.ceil(ac.sampleRate * length);
+      const buffer = ac.createBuffer(1, frames, ac.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < frames; i++) {
+        const decay = Math.pow(1 - i / frames, 3.2);
+        data[i] = (Math.random() * 2 - 1) * decay;
+      }
+      const source = ac.createBufferSource();
+      const high = ac.createBiquadFilter();
+      const body = ac.createBiquadFilter();
       const gain = ac.createGain();
-      osc.type = wave;
-      osc.frequency.setValueAtTime(fromHz, now);
-      osc.frequency.exponentialRampToValueAtTime(toHz, now + length);
+      source.buffer = buffer;
+      high.type = 'highpass'; high.frequency.value = clickHz;
+      body.type = 'peaking'; body.frequency.value = bodyHz; body.Q.value = 2.4; body.gain.value = 9;
       gain.gain.setValueAtTime(volume, now);
       gain.gain.exponentialRampToValueAtTime(.0001, now + length);
-      osc.connect(gain); gain.connect(ac.destination);
-      osc.start(now); osc.stop(now + length + .005);
+      source.connect(high); high.connect(body); body.connect(gain); gain.connect(ac.destination);
+      source.start(now);
+
+      const releaseGain = ac.createGain();
+      const releaseFilter = ac.createBiquadFilter();
+      const releaseSource = ac.createBufferSource();
+      releaseSource.buffer = buffer;
+      releaseFilter.type = 'bandpass'; releaseFilter.frequency.value = bodyHz * 1.35; releaseFilter.Q.value = 1.6;
+      releaseGain.gain.setValueAtTime(volume * .34, now + release);
+      releaseGain.gain.exponentialRampToValueAtTime(.0001, now + release + .012);
+      releaseSource.connect(releaseFilter); releaseFilter.connect(releaseGain); releaseGain.connect(ac.destination);
+      releaseSource.start(now + release, 0, .014);
     };
 
     if (profile === 0) {
-      /* 1: высокий сухой click механической клавиатуры. */
-      tone('square', punctuation ? 520 : 760, 180, .075, .022);
+      /* 1: звонкий clicky-переключатель. */
+      keyHit({ bodyHz: punctuation ? 1650 : 2100, clickHz: 900, volume: .20, length: .026, release: .034 });
     } else if (profile === 1) {
-      /* 2: низкий и более долгий пластиковый thock старого терминала. */
-      tone('sine', punctuation ? 72 : 105, 58, .13, .075);
+      /* 2: более глухой tactile-переключатель. */
+      keyHit({ bodyHz: punctuation ? 620 : 760, clickHz: 260, volume: .24, length: .042, release: .046 });
     } else {
-      /* 3: шумный металлический удар печатной машинки. */
-      const frames = Math.ceil(ac.sampleRate * .038);
-      const buffer = ac.createBuffer(1, frames, ac.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < frames; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
-      const source = ac.createBufferSource();
-      const filter = ac.createBiquadFilter();
-      const gain = ac.createGain();
-      source.buffer = buffer;
-      filter.type = 'bandpass'; filter.frequency.value = punctuation ? 1150 : 1850; filter.Q.value = 1.1;
-      gain.gain.setValueAtTime(.16, now);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + .038);
-      source.connect(filter); filter.connect(gain); gain.connect(ac.destination);
-      source.start(now);
-      tone('triangle', 420, 250, .045, .032);
+      /* 3: глубокий linear/thock с выраженным корпусом. */
+      keyHit({ bodyHz: punctuation ? 360 : 470, clickHz: 150, volume: .28, length: .055, release: .052 });
     }
   },
   alert() {
