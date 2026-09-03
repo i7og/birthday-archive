@@ -372,7 +372,7 @@ const SC5 = {
       const w = el('div', 'card s5-block');
       w.appendChild(el('div', 'k', b.key));
       const ph = b.collage
-        ? collageSlot('photos/s5-friends', 4, 'FRIENDS')
+        ? collageSlot('photos/s5-friends', 3, 'FRIENDS')
         : photoSlot({ src: b.src, title: b.key, label: 'PHOTO / SCAN' });
       if (b.logo) ph.appendChild(optimusLogo(b.logo));
       w.appendChild(ph);
@@ -551,14 +551,20 @@ const SC7 = {
       cards.push(c);
     });
 
+    const decor = el('div', 's7-decor');
+    const decorNodes = C.s7.decorations.map(photo => {
+      const node = photoSlot(photo, 's7-decoration card');
+      decor.appendChild(node);
+      return node;
+    });
     const opinion = el('div', 's7-opinion rv', C.s7.opinion);
     const foot = el('div', 's7-foot');
     const note = el('div', 's7-note rv');
     C.s7.footnote.forEach(l => note.appendChild(el('div', null, '> ' + l)));
     const ver = el('div', 's7-note rv', C.s7.version);
     foot.append(note, ver);
-    root.append(H.node, H.rule, grid, opinion, foot);
-    return { H, cards, opinion, note, ver };
+    root.append(H.node, H.rule, grid, decor, opinion, foot);
+    return { H, cards, decorNodes, opinion, note, ver };
   },
   async play(ctx, r) {
     show(r.H.t); show(r.H.rule);
@@ -574,6 +580,10 @@ const SC7 = {
       await ctx.wait(200);
     }
     await ctx.wait(400);
+    for (const photo of r.decorNodes) {
+      photo.classList.add('settle');
+      await ctx.wait(420);
+    }
     show(r.opinion);
     await ctx.wait(500);
     show(r.note); show(r.ver);
@@ -723,8 +733,6 @@ const SC9 = {
     const left = el('div', 's9-panel');
     const trendsTitle = el('div', 'ph rv strong', C.s9.trendsTitle);
     left.appendChild(trendsTitle);
-    const sleepPhoto = photoSlot(C.s9.sleepPhoto, 's9-sleepphoto');
-    left.appendChild(sleepPhoto);
     const trends = C.s9.trends.map(t => { const n = trendNode(t, C.s9.monthLabels); left.appendChild(n); return n; });
     const shift = el('div', 's9-shift rv', C.s9.shift);
     left.appendChild(shift);
@@ -768,7 +776,7 @@ const SC9 = {
     foot.appendChild(bar);
 
     root.append(H.node, H.rule, grid, foot);
-    return { H, trendsTitle, statsTitle, repairsTitle, sleepPhoto, trends, shift, stats, cv, calert, repairs, foot, bar };
+    return { H, trendsTitle, statsTitle, repairsTitle, trends, shift, stats, cv, calert, repairs, foot, bar };
   },
   async play(ctx, r) {
     show(r.H.t); show(r.H.rule);

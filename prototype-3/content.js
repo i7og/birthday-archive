@@ -92,7 +92,7 @@ window.CONTENT = {
       { id:"dec", n:"03", m:"DECEMBER 2025", icon:"🐶",
         head:"NEW IDEA DETECTED",
         body:["POTENTIAL NEW LIFE COMPANION: DOG 🐶","STATUS: CONSIDERING","FUTURE DOG OWNER: ? MAYBE"],
-        photo:{ src:"photos/s4-december-dog.jpg", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" },
+        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" },
         lock:{ from:"DECISION: PENDING", to:"DECISION: PENDING" },
         quote:"A new chapter was under consideration." },
 
@@ -109,7 +109,7 @@ window.CONTENT = {
       { id:"mar", n:"06", m:"MARCH 2026", icon:"💋", ribbon:"FIRST KISS OF 2026",
         head:"NEW ACHIEVEMENT",
         body:["🍰 PISTACHIO CHEESECAKE: UNLIMITED","☕ COFFEE TIME: INCREASED RAPIDLY"],
-        photo:{ src:"photos/s4-march-kiss.jpg", label:"KISS PHOTO", title:"MARCH — FIRST KISS" },
+        photo:{ src:"photos/s4-march-kiss.png", label:"KISS PHOTO", title:"MARCH — FIRST KISS" },
         lock:{ from:"ACHIEVEMENT: UNLOCKED", to:"ACHIEVEMENT: UNLOCKED" } },
 
       { id:"apr", n:"07", m:"APRIL 2026", icon:"🛥️",
@@ -159,7 +159,7 @@ window.CONTENT = {
     quote: ["\"A YEAR IS NOT JUST WHAT YOU DO.", "IT IS ALSO WHO YOU SPEND IT WITH.\""],
     blocks: [
       { key:"FAMILY",       caption:"FAMILY IMPORTANCE: HIGH",        src:"photos/s5-family.jpg" },
-      { key:"COLLEAGUES",   caption:"COLLEAGUES CONNECTION: ACTIVE",  src:"photos/s5-colleagues.jpg", logo:"photos/optimus-logo.png" },
+      { key:"COLLEAGUES",   caption:"COLLEAGUES CONNECTION: ACTIVE",  src:"photos/s5-colleagues.jpg", logo:"photos/optimus-logo.jpg" },
       { key:"FRIENDSHIP",   caption:"FRIENDSHIP LEVEL: HIGH",         src:"photos/s5-friends.jpg", collage:true },
       { key:"RELATIONSHIP", caption:"RELATIONSHIP SKILL LEVEL: MAX",  src:"photos/s5-relationship.jpg" }
     ],
@@ -202,7 +202,10 @@ window.CONTENT = {
     opinion: "OPINION DATABASE: EXTREMELY SPECIFIC ✓",
     footnote: ["End of log", "Saving data….", "Data saved"],
     version: "version 41.0",
-    photo: { src:"photos/s7-portrait.jpg", label:"PHOTO / SCAN", title:"LEGACY BUILD" },
+    decorations: [
+      { src:"photos/s7-decoration-1.png", label:"ARCHIVE INSERT", title:"LEGACY FEATURE — INSERT 1" },
+      { src:"photos/s7-decoration-2.png", label:"ARCHIVE INSERT", title:"LEGACY FEATURE — INSERT 2" }
+    ],
     blocks: [
       { n:"01", t:"DECISIONS 🔄", items:[
         "🐶 DOG — CONSIDERED → CANCELLED ✓",
@@ -295,7 +298,6 @@ window.CONTENT = {
       { i:"🍳", name:"BREAKFASTS",           data:[20,18,22,20,31,42,74,85,88,92,95,90] }
     ],
     shift: "LIFESTYLE SHIFT DETECTED — APRIL 2026 → SEPTEMBER 2026",
-    sleepPhoto: { src:"photos/s9-sleep.jpg", label:"PHOTO", title:"SLEEP MODULE" },
     statsTitle: "KEY STATISTICS",
     stats: [
       { label:"POKER FACES MASTERED",        value:0,      suffix:"" },
