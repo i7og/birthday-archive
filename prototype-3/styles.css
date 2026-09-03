@@ -682,7 +682,18 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 
 /* --- кадр 3 --- */
 .s3-photo{ height:470px; }
-.s3-photo img{ object-fit:contain; background:#020704; }
+.s3-photo img{
+  object-fit:cover;
+  object-position:center 45%;
+  background:#020704;
+  filter:grayscale(1) sepia(.8) hue-rotate(78deg) saturate(1.8) brightness(.66) contrast(1.42);
+}
+.s3-photo.has-img::before{
+  background:
+    linear-gradient(rgba(12,118,56,.24),rgba(0,28,12,.32)),
+    repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 3px,rgba(0,0,0,.20) 3px 4px);
+  box-shadow:inset 0 0 48px rgba(0,0,0,.58);
+}
 .s3-cap{ margin-top:12px; font-size:.9em; letter-spacing:.1em; color:var(--g-mid); }
 
 /* --- кадр 4 --- */
