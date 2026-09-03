@@ -262,15 +262,11 @@ async function runBoot() {
   for (const t of BOOTLOG2) { await type(ctx, line(), t, 150); await ctx.wait(90); }
 
   await ctx.wait(400);
-  show($('#startBtn'));
-  $('#startBtn').focus();
+  start();
 }
 
 function start() {
-  /* разблокировка звука должна происходить внутри пользовательского клика */
-  Snd.unlockType();
-  $('#startBtn').disabled = true;
-  $('#startBtn').textContent = '[ LOADING ARCHIVE ]';
+  /* После загрузки автоматически проигрываем интро и переходим к слайду 1. */
   Snd.play('intro');
   startTimers.push(setTimeout(() => {
     Snd.stop('intro');
@@ -289,5 +285,4 @@ function start() {
 buildAll();
 initControls();
 fit();
-$('#startBtn').addEventListener('click', start);
 runBoot().catch(() => {});
