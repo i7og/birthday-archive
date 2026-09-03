@@ -9,6 +9,7 @@ const E = {
   token: 0,        // токен текущего проигрывания сцены
   autoplay: true,
   typingSound: false,
+  typingProfile: 0,
   deniedAlert: false
 };
 
@@ -242,17 +243,23 @@ const Snd = {
     const now = ac.currentTime;
     if (now - this.lastTypeAt < .018) return;
     this.lastTypeAt = now;
+    const punctuation = /[.,:;!?\-—]/.test(char);
+    const profiles = [
+      { wave:'square',   hz:205, volume:.060, length:.040 }, /* mechanical click */
+      { wave:'triangle', hz:112, volume:.070, length:.060 }, /* terminal thock */
+      { wave:'sawtooth', hz:345, volume:.045, length:.028 }  /* typewriter strike */
+    ];
+    const p = profiles[E.typingProfile % profiles.length];
     const osc = ac.createOscillator();
     const gain = ac.createGain();
-    const punctuation = /[.,:;!?\-—]/.test(char);
-    osc.type = 'square';
-    osc.frequency.setValueAtTime((punctuation ? 150 : 185) + Math.random() * 28, now);
-    gain.gain.setValueAtTime(.055 + Math.random() * .018, now);
-    gain.gain.exponentialRampToValueAtTime(.0001, now + .038);
+    osc.type = p.wave;
+    osc.frequency.setValueAtTime((punctuation ? p.hz * .78 : p.hz) + Math.random() * 24, now);
+    gain.gain.setValueAtTime(p.volume + Math.random() * .012, now);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + p.length);
     osc.connect(gain);
     gain.connect(ac.destination);
     osc.start(now);
-    osc.stop(now + .042);
+    osc.stop(now + p.length + .005);
   },
   alert() {
     if (this.muted) return;
