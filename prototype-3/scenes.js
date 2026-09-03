@@ -157,6 +157,8 @@ const SC2 = {
     return { broken, lines, observer, lines2, mission, lines3, prompt, warn };
   },
   async play(ctx, r) {
+    E.typingSound = true;
+    E.deniedAlert = true;
     await typeVerdict(ctx, r.broken, C.s2.broken, 'DENIED');
     await ctx.wait(700);
     /* «чиним» строку */
@@ -188,6 +190,8 @@ const SC2 = {
     await type(ctx, r.prompt, '> ' + C.s2.prompt, 40);
     r.prompt.appendChild(el('span', 'caret'));
     await ctx.wait(1400);
+    E.typingSound = false;
+    E.deniedAlert = false;
   }
 };
 

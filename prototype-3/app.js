@@ -67,6 +67,7 @@ function rebuild(i) {
 async function goTo(i) {
   if (i < 0 || i >= SCENES.length) return;
   E.typingSound = false;
+  E.deniedAlert = false;
   if (cur >= 0 && SCENES[cur].stop) SCENES[cur].stop(refs[cur]);
   if (i < 3 || i > 8) Snd.stop('music');
 

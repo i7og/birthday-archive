@@ -8,7 +8,8 @@ const E = {
   speed: 1,
   token: 0,        // токен текущего проигрывания сцены
   autoplay: true,
-  typingSound: false
+  typingSound: false,
+  deniedAlert: false
 };
 
 const SKIP = Symbol('scene-skipped');
@@ -71,8 +72,16 @@ async function typeVerdict(ctx, node, t, v, cps = 65) {
   await ctx.wait(140);
   const b = el('span', v === 'DENIED' ? 'no' : 'ok');
   node.appendChild(b);
-  if (v === 'DENIED') Snd.play('blip');
+  const resumeTyping = E.typingSound;
+  if (v === 'DENIED') {
+    if (E.deniedAlert) {
+      E.typingSound = false;
+      Snd.alert();
+    }
+    else Snd.play('blip');
+  }
   await type(ctx, b, ' — ' + v, cps + 30);
+  E.typingSound = resumeTyping;
 }
 
 /* --- пословный вывод -------------------------------------------------------
@@ -244,6 +253,25 @@ const Snd = {
     gain.connect(ac.destination);
     osc.start(now);
     osc.stop(now + .042);
+  },
+  alert() {
+    if (this.muted) return;
+    this.unlockType();
+    const ac = this.typeCtx;
+    if (!ac || ac.state !== 'running') return;
+    const now = ac.currentTime;
+    [0, .13].forEach((offset, index) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(index ? 245 : 185, now + offset);
+      gain.gain.setValueAtTime(.085, now + offset);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + offset + .105);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + .11);
+    });
   },
   load(name, src, loop, vol) {
     const a = document.createElement('audio');
