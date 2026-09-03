@@ -12,6 +12,7 @@ let cur = -1;
 const refs = [];
 const roots = [];
 let started = Date.now();
+let startTimers = [];
 
 $('#prototypeVersion').textContent = 'PROTOTYPE ' + window.PROTOTYPE_VERSION;
 
@@ -88,16 +89,17 @@ async function goTo(i) {
   updateHUD();
   fit();
 
-  if (i === 3) {
+  if (i === 3 && !E.instant) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     if (E.token !== token) return;
     gapEl.classList.remove('on');
   }
-  if (i === 9) {
+  if (i === 9 && !E.instant) {
     await new Promise(resolve => setTimeout(resolve, 650));
     if (E.token !== token) return;
     gapEl.classList.remove('on');
   }
+  if (E.instant) gapEl.classList.remove('on');
 
   const ctx = ctxFor(token);
   try {
@@ -117,6 +119,29 @@ async function goTo(i) {
   }
   if (E.token !== token) return;
   if (i < SCENES.length - 1) goTo(i + 1);
+}
+
+/* Тестовый переход по цифрам: без заставки, пауз и автоперехода. */
+async function jumpTo(i) {
+  startTimers.forEach(clearTimeout);
+  startTimers = [];
+  E.token++; // останавливает незавершённый boot log
+  Snd.unlockType();
+  Snd.stop('intro');
+  bootEl.classList.add('gone');
+  $('#flicker').classList.add('on');
+  gapEl.classList.remove('on');
+
+  const wasInstant = E.instant;
+  const wasAutoplay = E.autoplay;
+  E.instant = true;
+  E.autoplay = false;
+  try {
+    await goTo(i);
+  } finally {
+    E.instant = wasInstant;
+    E.autoplay = wasAutoplay;
+  }
 }
 
 /* ---------------- управление ---------------- */
@@ -178,9 +203,9 @@ function initControls() {
 
   addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeWin(); $('#menu').classList.remove('on'); return; }
+    if (/^[1-9]$/.test(e.key)) { e.preventDefault(); jumpTo(Number(e.key) - 1); return; }
+    if (e.key === '0') { e.preventDefault(); jumpTo(9); return; }
     if (!bootEl.classList.contains('gone')) return;
-    if (/^[1-9]$/.test(e.key)) { e.preventDefault(); goTo(Number(e.key) - 1); return; }
-    if (e.key === '0') { e.preventDefault(); goTo(9); return; }
     if (e.key === 'ArrowRight') { e.preventDefault(); goTo(cur + 1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(cur - 1); }
     if (e.code === 'Space')     { e.preventDefault(); togglePause(); }
@@ -249,17 +274,17 @@ function start() {
   $('#startBtn').disabled = true;
   $('#startBtn').textContent = '[ LOADING ARCHIVE ]';
   Snd.play('intro');
-  setTimeout(() => {
+  startTimers.push(setTimeout(() => {
     Snd.stop('intro');
     bootEl.classList.add('gone');
     $('#flicker').classList.add('on');
     started = Date.now();
     gapEl.classList.add('on');
-    setTimeout(() => {
+    startTimers.push(setTimeout(() => {
       gapEl.classList.remove('on');
       goTo(0);
-    }, 1000);
-  }, 8000);
+    }, 1000));
+  }, 8000));
 }
 
 /* ---------------- старт ---------------- */
