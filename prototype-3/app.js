@@ -179,6 +179,8 @@ function initControls() {
   addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeWin(); $('#menu').classList.remove('on'); return; }
     if (!bootEl.classList.contains('gone')) return;
+    if (/^[1-9]$/.test(e.key)) { e.preventDefault(); goTo(Number(e.key) - 1); return; }
+    if (e.key === '0') { e.preventDefault(); goTo(9); return; }
     if (e.key === 'ArrowRight') { e.preventDefault(); goTo(cur + 1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(cur - 1); }
     if (e.code === 'Space')     { e.preventDefault(); togglePause(); }
