@@ -13,6 +13,8 @@ const refs = [];
 const roots = [];
 let started = Date.now();
 
+$('#prototypeVersion').textContent = 'PROTOTYPE ' + window.PROTOTYPE_VERSION;
+
 /* ---------------- звук: берём библиотеку самого репозитория ---------------- */
 Snd.load('boot',  '../assets/sounds/matrix-monitor.mp3',      false, .45);
 Snd.load('scan',  '../assets/sounds/scan.mp3',                false, .55);
