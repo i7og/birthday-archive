@@ -24,6 +24,8 @@ Snd.load('music', '../assets/sounds/matrix-clubbed-to-death.mp3', true, .26);
 Snd.load('outro', '../assets/sounds/matrix-monitor.mp3',      false, .40);
 Snd.load('win',   '../assets/sounds/rick-and-morty-intro.mp3', false, .50);
 Snd.load('intro', '../assets/sounds/rick-and-morty-intro.mp3', false, .45);
+const introStartedAt = Date.now();
+Snd.play('intro');
 
 /* ---------------- масштабирование сцены под экран ---------------- */
 function fit() {
@@ -266,19 +268,16 @@ async function runBoot() {
 }
 
 function start() {
-  /* После загрузки автоматически проигрываем интро и переходим к слайду 1. */
-  Snd.play('intro');
+  /* Загрузка идёт внутри уже запущенного интро; слайд 1 входит на его окончании. */
+  const remainingIntro = Math.max(0, 8000 - (Date.now() - introStartedAt));
   startTimers.push(setTimeout(() => {
     Snd.stop('intro');
     bootEl.classList.add('gone');
     $('#flicker').classList.add('on');
     started = Date.now();
-    gapEl.classList.add('on');
-    startTimers.push(setTimeout(() => {
-      gapEl.classList.remove('on');
-      goTo(0);
-    }, 1000));
-  }, 8000));
+    gapEl.classList.remove('on');
+    goTo(0);
+  }, remainingIntro));
 }
 
 /* ---------------- старт ---------------- */

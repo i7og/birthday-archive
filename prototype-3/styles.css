@@ -535,6 +535,13 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 }
 #boot .bootlog{ font-size:clamp(11px,1.35vw,17px); line-height:2; width:min(760px,92vw); color:var(--g); }
 #boot .bootlog .dim{ color:var(--g-dim); }
+.loading-archive{
+  border:1px solid var(--g); color:var(--g-bright); background:rgba(78,240,138,.08);
+  padding:14px 34px; font-size:clamp(12px,1.4vw,17px); letter-spacing:.24em;
+  box-shadow:0 0 24px rgba(78,240,138,.16);
+}
+.loading-archive span{ display:inline-block; margin-right:10px; animation:loadingSpin 1s steps(8,end) infinite; }
+@keyframes loadingSpin{ to{ transform:rotate(360deg); } }
 #boot .start{
   border:1px solid var(--g); color:var(--g-bright); background:rgba(78,240,138,.08);
   padding:14px 34px; font-family:inherit; font-size:clamp(12px,1.4vw,17px);
