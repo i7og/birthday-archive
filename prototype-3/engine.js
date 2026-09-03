@@ -244,22 +244,43 @@ const Snd = {
     if (now - this.lastTypeAt < .018) return;
     this.lastTypeAt = now;
     const punctuation = /[.,:;!?\-—]/.test(char);
-    const profiles = [
-      { wave:'square',   hz:205, volume:.060, length:.040 }, /* mechanical click */
-      { wave:'triangle', hz:112, volume:.070, length:.060 }, /* terminal thock */
-      { wave:'sawtooth', hz:345, volume:.045, length:.028 }  /* typewriter strike */
-    ];
-    const p = profiles[E.typingProfile % profiles.length];
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    osc.type = p.wave;
-    osc.frequency.setValueAtTime((punctuation ? p.hz * .78 : p.hz) + Math.random() * 24, now);
-    gain.gain.setValueAtTime(p.volume + Math.random() * .012, now);
-    gain.gain.exponentialRampToValueAtTime(.0001, now + p.length);
-    osc.connect(gain);
-    gain.connect(ac.destination);
-    osc.start(now);
-    osc.stop(now + p.length + .005);
+    const profile = E.typingProfile % 3;
+
+    const tone = (wave, fromHz, toHz, volume, length) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(fromHz, now);
+      osc.frequency.exponentialRampToValueAtTime(toHz, now + length);
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + length);
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.start(now); osc.stop(now + length + .005);
+    };
+
+    if (profile === 0) {
+      /* 1: высокий сухой click механической клавиатуры. */
+      tone('square', punctuation ? 520 : 760, 180, .075, .022);
+    } else if (profile === 1) {
+      /* 2: низкий и более долгий пластиковый thock старого терминала. */
+      tone('sine', punctuation ? 72 : 105, 58, .13, .075);
+    } else {
+      /* 3: шумный металлический удар печатной машинки. */
+      const frames = Math.ceil(ac.sampleRate * .038);
+      const buffer = ac.createBuffer(1, frames, ac.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < frames; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+      const source = ac.createBufferSource();
+      const filter = ac.createBiquadFilter();
+      const gain = ac.createGain();
+      source.buffer = buffer;
+      filter.type = 'bandpass'; filter.frequency.value = punctuation ? 1150 : 1850; filter.Q.value = 1.1;
+      gain.gain.setValueAtTime(.16, now);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .038);
+      source.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+      source.start(now);
+      tone('triangle', 420, 250, .045, .032);
+    }
   },
   alert() {
     if (this.muted) return;
