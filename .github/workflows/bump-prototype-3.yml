@@ -25,7 +25,19 @@ jobs:
           const match = source.match(/PROTOTYPE_VERSION = '3\.(\d+)'/);
           if (!match) throw new Error('Prototype 3 version was not found');
           const next = Number(match[1]) + 1;
-          fs.writeFileSync(path, source.replace(match[0], `PROTOTYPE_VERSION = '3.${next}'`));
+          const version = `3.${next}`;
+          fs.writeFileSync(path, source.replace(match[0], `PROTOTYPE_VERSION = '${version}'`));
+
+          const selectorPath = 'index.html';
+          const selector = fs.readFileSync(selectorPath, 'utf8')
+            .replace(/id="prototype3Badge">03\.\d+</, `id="prototype3Badge">0${version}<`)
+            .replace(/id="prototype3Title">ПРОТОТИП 3\.\d+</, `id="prototype3Title">ПРОТОТИП ${version}<`);
+          fs.writeFileSync(selectorPath, selector);
+
+          const prototypePath = 'prototype-3/index.html';
+          const prototype = fs.readFileSync(prototypePath, 'utf8')
+            .replace(/id="prototypeVersion">PROTOTYPE 3\.\d+</, `id="prototypeVersion">PROTOTYPE ${version}<`);
+          fs.writeFileSync(prototypePath, prototype);
           fs.writeFileSync('/tmp/prototype-version', `3.${next}`);
           NODE
 
@@ -34,6 +46,6 @@ jobs:
           VERSION=$(cat /tmp/prototype-version)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add prototype-3/version.js
+          git add prototype-3/version.js prototype-3/index.html index.html
           git commit -m "chore: bump prototype to ${VERSION} [skip ci]"
           git push
