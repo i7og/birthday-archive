@@ -57,6 +57,7 @@ async function type(ctx, node, text, cps = 55) {
   for (let i = 0; i < text.length; i++) {
     node.insertBefore(document.createTextNode(text[i]), caret);
     const c = text[i];
+    if (!/\s/.test(c)) Snd.typeClick(c);
     await ctx.wait(delay * (c === '.' || c === ',' || c === ':' ? 3 : 1));
   }
   caret.remove();
@@ -208,7 +209,41 @@ function closeWin() { $('#win').classList.remove('on'); }
 const MUTE_KEY = 'birthday-archive-muted';
 const Snd = {
   tracks: {},
+  typeCtx: null,
+  lastTypeAt: 0,
   get muted() { return localStorage.getItem(MUTE_KEY) === 'true'; },
+  unlockType() {
+    if (this.typeCtx) {
+      if (this.typeCtx.state === 'suspended') this.typeCtx.resume().catch(() => {});
+      return;
+    }
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    this.typeCtx = new AudioCtx();
+    if (this.typeCtx.state === 'suspended') this.typeCtx.resume().catch(() => {});
+  },
+  typeClick(char) {
+    if (this.muted) return;
+    this.unlockType();
+    const ac = this.typeCtx;
+    if (!ac || ac.state !== 'running') return;
+
+    /* Очень короткий механический щелчок: слышен как клавиша, а не как тон. */
+    const now = ac.currentTime;
+    if (now - this.lastTypeAt < .018) return;
+    this.lastTypeAt = now;
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    const punctuation = /[.,:;!?\-—]/.test(char);
+    osc.type = 'square';
+    osc.frequency.setValueAtTime((punctuation ? 150 : 185) + Math.random() * 28, now);
+    gain.gain.setValueAtTime(.018 + Math.random() * .009, now);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + .026);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + .03);
+  },
   load(name, src, loop, vol) {
     const a = document.createElement('audio');
     a.src = src;

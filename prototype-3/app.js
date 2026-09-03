@@ -241,6 +241,7 @@ async function runBoot() {
 
 function start() {
   /* разблокировка звука должна происходить внутри пользовательского клика */
+  Snd.unlockType();
   Object.values(Snd.tracks).forEach(a => {
     try { a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {}); } catch (e) {}
   });
