@@ -242,6 +242,8 @@ const SC3 = {
     return { rowNodes, sysNodes, alert, scanbox, cap, dino };
   },
   async play(ctx, r) {
+    E.typingSound = true;
+    E.typingProfile = 0;
     for (let i = 0; i < C.s3.rows.length; i++) {
       const [k, v] = C.s3.rows[i];
       await type(ctx, r.rowNodes[i].k, k + ': ', 90);
@@ -254,6 +256,7 @@ const SC3 = {
       await ctx.wait(180);
     }
     await ctx.wait(300);
+    E.typingSound = false;
     show(r.alert);
     r.alert.classList.add('triple-flash');
     await ctx.wait(900);
@@ -264,9 +267,7 @@ const SC3 = {
     r.scanbox.classList.add('scanning');
     await ctx.wait(4600);
     show(r.cap);
-    await ctx.wait(500);
     show(r.dino);
-    await ctx.wait(2000);
   }
 };
 
@@ -348,6 +349,13 @@ const SC4 = {
     show(r.meta);
     await ctx.wait(520);
     for (let i = 0; i < r.cards.length; i++) {
+      /* Тихий участок 00:22–00:24 разделяет январь и февраль;
+         февраль входит вместе с битом на 00:25. */
+      if (i === 4) {
+        const music = Snd.tracks.music;
+        if (music && !music._dead) music.currentTime = 22;
+        await ctx.wait(3000);
+      }
       const c = r.cards[i];
       c.classList.add('enter');
       await ctx.wait(620);
@@ -367,11 +375,8 @@ const SC4 = {
       }
       if (i === 1) { show(r.noteA); await ctx.wait(520); }
       if (i === 3) {
-        await ctx.wait(1100);
-        const music = Snd.tracks.music;
-        if (music && !music._dead) music.currentTime = 26;
         show(r.noteB);
-        await ctx.wait(900);
+        await ctx.wait(180);
       }
       await ctx.wait(130);
     }

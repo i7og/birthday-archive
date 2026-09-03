@@ -78,9 +78,8 @@ async function goTo(i) {
   $('#btnPause').textContent = '❚❚ PAUSE';
   gapEl.classList.toggle('on', i === 9);
 
-  /* Перед годовым обзором сцена уже строится под чёрной шторкой. */
+  /* Музыка и заголовок годового обзора начинаются сразу после сканирования. */
   if (i === 3) {
-    gapEl.classList.add('on');
     Snd.play('music');
   }
   rebuild(i);
@@ -89,11 +88,6 @@ async function goTo(i) {
   updateHUD();
   fit();
 
-  if (i === 3 && !E.instant) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    if (E.token !== token) return;
-    gapEl.classList.remove('on');
-  }
   if (i === 9 && !E.instant) {
     await new Promise(resolve => setTimeout(resolve, 650));
     if (E.token !== token) return;
