@@ -362,7 +362,7 @@ const SC4 = {
       c.classList.add('settle');
       await ctx.wait(260);
 
-      await revealWords(ctx, c._words, 105);
+      await revealWords(ctx, c._words, 450);
       for (const [bar, to] of (c._bars || [])) await runBar(ctx, bar, to, 900);
       if (c._loaders) {
         for (const b of c._loaders) { b.textContent = 'LOADING'; await ctx.wait(150); }
