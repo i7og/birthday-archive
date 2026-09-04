@@ -571,6 +571,37 @@ const SC6 = {
   }
 };
 
+/* пиксельные декоративные «фишки» — рисуются кодом, без внешних картинок,
+   чтобы не заимствовать чужие охраняемые персонажи */
+function decorDino() {
+  const box = el('div', 's7-decoration s7-decoration--dino card');
+  const svg = ns('svg', { viewBox: '0 0 60 50' });
+  const R = [
+    [2, 22, 14, 8], [14, 20, 26, 18], [34, 12, 10, 12], [38, 4, 16, 12],
+    [52, 10, 6, 4], [18, 38, 6, 10], [18, 46, 10, 3], [28, 38, 6, 8],
+    [28, 44, 10, 3], [36, 26, 7, 3]
+  ];
+  R.forEach(r => svg.appendChild(ns('rect', { x: r[0], y: r[1], width: r[2], height: r[3], fill: 'currentColor' })));
+  svg.appendChild(ns('rect', { x: 46, y: 7, width: 3, height: 3, fill: '#030d07' }));
+  box.appendChild(svg);
+  return box;
+}
+function decorSpider() {
+  const box = el('div', 's7-decoration s7-decoration--spider card');
+  const svg = ns('svg', { viewBox: '0 0 60 50' });
+  const legs = [
+    'M38,20 L48,14 L58,10', 'M38,23 L50,20 L60,18', 'M38,27 L50,30 L60,32', 'M38,30 L48,36 L58,42',
+    'M22,20 L12,14 L2,10',  'M22,23 L10,20 L0,18',  'M22,27 L10,30 L0,32',  'M22,30 L12,36 L2,42'
+  ];
+  legs.forEach(d => svg.appendChild(ns('path', { d, stroke: 'currentColor', 'stroke-width': 2, fill: 'none' })));
+  svg.appendChild(ns('rect', { x: 20, y: 18, width: 20, height: 15, rx: 6, fill: 'currentColor' }));
+  svg.appendChild(ns('circle', { cx: 30, cy: 14, r: 6, fill: 'currentColor' }));
+  svg.appendChild(ns('circle', { cx: 27.5, cy: 12.5, r: 1.4, fill: '#030d07' }));
+  svg.appendChild(ns('circle', { cx: 32.5, cy: 12.5, r: 1.4, fill: '#030d07' }));
+  box.appendChild(svg);
+  return box;
+}
+
 /* =========================================================================
    КАДР 7
    ========================================================================= */
@@ -593,11 +624,8 @@ const SC7 = {
     });
 
     const decor = el('div', 's7-decor');
-    const decorNodes = C.s7.decorations.map(photo => {
-      const node = photoSlot(photo, 's7-decoration card');
-      decor.appendChild(node);
-      return node;
-    });
+    const decorNodes = [decorDino(), decorSpider()];
+    decorNodes.forEach(n => decor.appendChild(n));
     const opinion = el('div', 's7-opinion rv', C.s7.opinion);
     cards[3].appendChild(opinion);
     const foot = el('div', 's7-foot');
@@ -618,13 +646,13 @@ const SC7 = {
       await ctx.wait(650);
       c.classList.remove('enter');
       c.classList.add('settle');
-      if (c._words) await revealWords(ctx, c._words, 90);
-      await ctx.wait(550);
+      if (c._words) await revealWords(ctx, c._words, 420);
+      await ctx.wait(750);
     }
     await ctx.wait(400);
     for (const photo of r.decorNodes) {
       photo.classList.add('settle');
-      await ctx.wait(420);
+      await ctx.wait(500);
     }
     show(r.opinion);
     await ctx.wait(500);
@@ -826,7 +854,7 @@ const SC9 = {
     await ctx.wait(400);
     show(r.trendsTitle);
     await ctx.wait(500);
-    for (const t of r.trends) { t.classList.add('in'); await ctx.wait(900); }
+    for (const t of r.trends) { t.classList.add('in'); await ctx.wait(2700); }
     await ctx.wait(300);
     show(r.shift);
     await ctx.wait(700);
@@ -836,18 +864,18 @@ const SC9 = {
     for (const st of r.stats) {
       show(st.row);
       if (st.s.raw == null) {
-        await countTo(ctx, st.v, st.s.value, st.s.value > 1000 ? 900 : 420, st.s.prefix || '', st.s.suffix || '');
+        await countTo(ctx, st.v, st.s.value, st.s.value > 1000 ? 1200 : 650, st.s.prefix || '', st.s.suffix || '');
       }
-      await ctx.wait(150);
+      await ctx.wait(500);
     }
     await ctx.wait(300);
     show(r.cv.parentNode);
-    await countTo(ctx, r.cv, C.s9.coffee.value, 1400);
+    await countTo(ctx, r.cv, C.s9.coffee.value, 1800);
     show(r.calert);
     await ctx.wait(700);
     show(r.repairsTitle);
     await ctx.wait(450);
-    await showSeq(ctx, r.repairs, 260);
+    await showSeq(ctx, r.repairs, 450);
     await ctx.wait(400);
     show(r.foot);
     await runBar(ctx, r.bar, C.s9.progress.to, 1600);

@@ -430,20 +430,27 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 /* ============================ SCENE 7 ============================ */
 
 .s7-grid{ display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:min-content;
-          gap:20px; flex:1 1 auto; align-content:start; }
-.fcard{ border:1px solid var(--line); background:var(--panel); padding:11px 14px; overflow:hidden; }
+          row-gap:34px; column-gap:20px; flex:1 1 auto; align-content:start; }
+.fcard{ border:1px solid var(--line); background:var(--panel); padding:11px 14px; overflow:hidden;
+        display:flex; flex-direction:column; }
 .fcard .h{ display:flex; gap:9px; align-items:baseline; font-size:.95em; font-weight:700;
            letter-spacing:.08em; color:var(--g-bright); margin-bottom:8px; }
 .fcard .h .n{ color:var(--g-faint); font-weight:400; }
-.fcard ul{ margin:0; padding:0; list-style:none; font-size:.76em; line-height:1.55; }
+.fcard ul{ margin:auto 0; padding:0; list-style:none; font-size:.76em; line-height:1.55; }
 .fcard ul li{ white-space:pre-wrap; }
 .s7-photo{ flex:1 1 auto; min-height:200px; }
 .s7-note{ font-size:.85em; color:var(--g-dim); letter-spacing:.1em; }
 .s7-note{ display:flex; gap:38px; width:100%; justify-content:center; }
 .s7-opinion{ margin-top:10px; padding:7px 10px; border:1px dashed var(--line); color:var(--g-bright); letter-spacing:.08em; font-size:.78em; }
-.s7-decor{ position:absolute; right:60px; bottom:88px; display:flex; gap:10px; z-index:8; }
-.s7-decoration{ width:170px; height:102px; transform:rotate(-2deg); box-shadow:0 0 18px rgba(78,240,138,.12); }
+.s7-decor{ position:absolute; right:60px; bottom:88px; display:flex; gap:16px; z-index:8; }
+.s7-decoration{
+  width:190px; height:150px; border:1px solid var(--line); background:rgba(78,240,138,.045);
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  transform:rotate(-2deg); box-shadow:0 0 18px rgba(78,240,138,.12); color:var(--g-mid);
+}
 .s7-decoration:nth-child(2){ transform:rotate(2deg); }
+.s7-decoration svg{ width:100%; height:100%; overflow:visible; }
+.s7-decoration--spider{ color:var(--g-dim); }
 
 /* ============================ SCENE 8 ============================ */
 
@@ -482,13 +489,15 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s9-panel .ph{ font-size:.86em; letter-spacing:.16em; color:var(--g-dim); margin-bottom:10px; }
 .s9-panel .ph.strong{ color:var(--g-bright); font-weight:700; }
 .trend{ margin-bottom:12px; position:relative; }
-.trend .th{ display:flex; justify-content:space-between; font-size:.8em; letter-spacing:.08em; color:var(--g-mid); margin-bottom:3px; }
+.trend .th{ display:flex; justify-content:space-between; font-size:.8em; letter-spacing:.08em; color:var(--g-mid); margin-bottom:3px;
+            opacity:0; transition:opacity .5s ease; }
+.trend.in .th{ opacity:1; }
 .trend .th .tag{ color:var(--g-faint); }
 .trend svg{ width:100%; height:66px; display:block; }
 .trend .lineP{ fill:none; stroke:var(--g); stroke-width:2; filter:drop-shadow(0 0 4px rgba(78,240,138,.6));
-               stroke-dasharray:1000; stroke-dashoffset:1000; transition:stroke-dashoffset 1.6s ease; }
+               stroke-dasharray:1000; stroke-dashoffset:1000; transition:stroke-dashoffset 2.3s ease .3s; }
 .trend.in .lineP{ stroke-dashoffset:0; }
-.trend .areaP{ fill:rgba(78,240,138,.10); opacity:0; transition:opacity 1s ease .6s; }
+.trend .areaP{ fill:rgba(78,240,138,.10); opacity:0; transition:opacity 1.4s ease 1s; }
 .trend.in .areaP{ opacity:1; }
 .trend .axis{ stroke:rgba(78,240,138,.18); stroke-width:1; }
 .s9-months{ display:flex; justify-content:space-between; font-size:.68em; color:var(--g-faint); letter-spacing:.1em; padding:0 2px; }

@@ -190,14 +190,10 @@ window.CONTENT = {
     opinion: "OPINION DATABASE: EXTREMELY SPECIFIC ✓",
     footnote: ["END OF LOG", "SAVING DATA", "DATA SAVED"],
     version: "version 41.0",
-    decorations: [
-      { src:"photos/s7-decoration-1.png", label:"ARCHIVE INSERT", title:"LEGACY FEATURE — INSERT 1" },
-      { src:"photos/s7-decoration-2.png", label:"ARCHIVE INSERT", title:"LEGACY FEATURE — INSERT 2" }
-    ],
     blocks: [
       { n:"01", t:"DECISIONS 🔄", items:[
         "🐶 DOG — CONSIDERED → CANCELLED ✓",
-        "❤️ RELATIONSHIP STATUS UPDATED ✓",
+        "❤️ RELATIONSHIP STATUS: UPDATED ✓",
         "🛥️ SAILING: LICENSE UNLOCKED ✓",
         "🩴 CRITICAL DECISION",
         "   RICK & MORTY FLIP-FLOPS: DEPRECATED ❌"
@@ -276,7 +272,7 @@ window.CONTENT = {
 
   /* ---------- КАДР 9 ---------- */
   s9: {
-    title: "JOSE’S NUMBER AND STATISTICS",
+    title: "JOSE'S NUMBERS & STATISTICS",
     trendsTitle: "MONTHLY TRENDS · OCTOBER 2025 – SEPTEMBER 2026",
     monthLabels: ["O","N","D","J","F","M","A","M","J","J","A","S"],
     trends: [
