@@ -120,7 +120,7 @@ window.CONTENT = {
         lock:{ from:"STUDY MODE: ACTIVATED", to:"STUDY MODE: ACTIVATED" } },
 
       { id:"jun", photoOnly:true,
-        photo:{ src:"photos/s4-june-boat.jpg", label:"PHOTO / SCAN", title:"PATRÓN — JUNE 2026" } },
+        photo:{ src:"photos/s4-june-boat.png", label:"PHOTO / SCAN", title:"PATRÓN — JUNE 2026" } },
 
       { id:"jul", n:"10", m:"JULY 2026", icon:"⚽",
         head:"SUMMER CHALLENGE",
@@ -131,7 +131,7 @@ window.CONTENT = {
               lock:"EMOTIONAL INVESTMENT: 100%" } },
 
       { id:"aug", photoOnly:true,
-        photo:{ src:"photos/s4-august-beach.jpg", label:"PHOTO / SCAN", title:"TORREMOLINOS — AUGUST 2026" } },
+        photo:{ src:"photos/s4-august-beach.png", label:"PHOTO / SCAN", title:"TORREMOLINOS — AUGUST 2026" } },
 
       { id:"sep", n:"12", m:"SEPTEMBER 2026", icon:"🎂",
         head:"PREVIOUS VERSION: COMPLETED ✅",
