@@ -270,7 +270,7 @@ function monthCard(m) {
   const c = el('article', 'card mcard' + (m.gap ? ' mcard--gap' : ''));
   if (m.photoOnly) {
     c.classList.add('mcard--photo-only');
-    c.appendChild(photoSlot(m.photo, 'm-photo'));
+    c.appendChild(photoSlot(m.photo, 'm-photo' + (m.photo.contain ? ' contain' : '')));
     c._bars = [];
     c._words = [];
     return c;

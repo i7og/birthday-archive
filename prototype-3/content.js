@@ -89,12 +89,8 @@ window.CONTENT = {
         head:"DATA MISSED",
         body:["HISTORICAL DATA UNAVAILABLE","","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
-      { id:"dec", n:"03", m:"DECEMBER 2025", icon:"🐶",
-        head:"NEW IDEA DETECTED",
-        body:["POTENTIAL NEW LIFE COMPANION: DOG 🐶","STATUS: CONSIDERING","FUTURE DOG OWNER: MAYBE"],
-        lock:{ from:"DECISION: PENDING", to:"DECISION: PENDING" },
-        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" },
-        quote:"[ A NEW CHAPTER UNDER CONSIDERATION: ? ]" },
+      { id:"dec", photoOnly:true,
+        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA", contain:true } },
 
       { id:"jan", n:"04", m:"JANUARY 2026", icon:"🔄",
         head:"DECISION UPDATED",
