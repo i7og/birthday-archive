@@ -144,14 +144,14 @@ window.CONTENT = {
   /* ---------- КАДР 5 ---------- */
   s5: {
     title: "PEOPLE AND CONNECTIONS",
-    quote: ["\"A YEAR IS NOT JUST WHAT YOU DO.", "IT IS ALSO WHO YOU SPEND IT WITH.\""],
+    quote: ["A YEAR IS NOT JUST WHAT YOU DO.", "IT IS ALSO WHO YOU SPEND IT WITH…"],
     blocks: [
       { key:"FAMILY",       caption:"FAMILY IMPORTANCE: HIGH",        src:"photos/s5-family.jpg" },
       { key:"COLLEAGUES",   caption:"COLLEAGUES CONNECTION: ACTIVE",  src:"photos/s5-colleagues.jpg", logo:"photos/optimus-logo.jpg" },
       { key:"FRIENDSHIP",   caption:"FRIENDSHIP LEVEL: HIGH",         src:"photos/s5-friends.jpg", collage:true },
       { key:"RELATIONSHIP", caption:"RELATIONSHIP SKILL LEVEL: MAX",  src:"photos/s5-relationship.jpg" }
     ],
-    summary: ["SOCIAL MODULE: 4 OF 4 CONNECTIONS ACTIVE ✓", "POSITIVE IMPACT: CONFIRMED ✓", "▶ MAKING LIFE BETTER"],
+    summary: ["SOCIAL MODULE: 4 OF 4 CONNECTIONS ACTIVE ✓", "POSITIVE IMPACT: CONFIRMED ✓", "MAKING LIFE BETTER: ALWAYS ✓"],
     footer: ""
   },
 
@@ -174,8 +174,8 @@ window.CONTENT = {
     zoomTitle: "MÁLAGA",
     zoomPins: [
       { name:"BOTANICAL GARDEN", x:140, y:62  },
-      { name:"GIBRALFARO",       x:330, y:108 },
       { name:"ALCAZABA",         x:250, y:158 },
+      { name:"GIBRALFARO",       x:330, y:108 },
       { name:"PICASSO MUSEUM",   x:120, y:198 },
       { name:"CITY CENTRE",      x:236, y:246 }
     ],

@@ -54,6 +54,7 @@ const WORD_GAP  = 86;
 
 async function type(ctx, node, text, cps = 55) {
   node.textContent = '';
+  node.classList.add('in');
   const caret = el('span', 'caret');
   node.appendChild(caret);
   const delay = 1000 / (cps * TYPE_SLOW);
