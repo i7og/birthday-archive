@@ -90,7 +90,7 @@ window.CONTENT = {
         body:["HISTORICAL DATA UNAVAILABLE","","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
       { id:"dec", photoOnly:true,
-        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA", contain:true } },
+        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" } },
 
       { id:"jan", n:"04", m:"JANUARY 2026", icon:"🔄",
         head:"DECISION UPDATED",
