@@ -706,7 +706,7 @@ const SC8 = {
     secret.appendChild(el('div', null, C.s8.secret[2]));
 
     root.append(H.node, H.rule, grid, secret);
-    return { H, cardsL, cardsR, photo, status, dev, logNodes, mid, st, fg, num, CIRC, scoreLbl, note, secret };
+    return { H, cardsL, cardsR, photo, status, dev, logNodes, mid, st, ring, fg, num, CIRC, scoreLbl, note, secret };
   },
   async play(ctx, r) {
     await type(ctx, r.H.t, C.s8.title, 28); show(r.H.rule);
