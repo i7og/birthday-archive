@@ -551,20 +551,6 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s10-wish{ text-align:center; font-size:1em; line-height:1.9; letter-spacing:.06em; }
 .s10-tail{ margin-top:auto; width:100%; padding:9px 0 3px; border-top:1px solid var(--line); font-size:.92em; color:var(--g-bright); letter-spacing:.12em; text-align:center; }
 
-/* Финал: единственный момент во всех 10 кадрах, где холодный терминал
-   ненадолго теплеет — под фанфару и поздравление, затем гаснет само. */
-.s10::before{
-  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
-  background:radial-gradient(circle at 50% 62%, rgba(255,196,120,.45), rgba(255,120,160,.18) 45%, transparent 72%);
-  mix-blend-mode:screen; opacity:0; transition:opacity 2.6s ease;
-}
-.s10.finale-warm::before{ opacity:1; }
-.s10.finale-warm .s10-hbd{
-  color:#ffe3b0; text-shadow:0 0 26px rgba(255,180,110,.75);
-  transition:color 1.8s ease, text-shadow 1.8s ease;
-}
-.s10.finale-warm .s10-wish{ color:#ffd9c2; transition:color 1.8s ease; }
-
 #fireworks{ position:absolute; inset:0; z-index:50; pointer-events:none; }
 
 /* ============================ ПАУЗА МЕЖДУ 9 и 10 ============================ */

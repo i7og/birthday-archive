@@ -25,18 +25,13 @@ const el = (tag, cls, txt) => {
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* --- ожидание с учётом паузы, скорости и отмены сцены ---------------------
-   ctx.skip() — «промотать» оставшуюся часть ИМЕННО ЭТОЙ сцены: не трогает
-   глобальный E.instant (который живёт дольше одной сцены), гаснет само,
-   как только сцена сменится (новый токен — новый ctx). --------------------- */
+/* --- ожидание с учётом паузы, скорости и отмены сцены --- */
 function ctxFor(token) {
   const alive = () => E.token === token;
-  let fast = false;
   return {
     get dead() { return E.token !== token; },
-    skip() { fast = true; },
     async wait(ms) {
-      if (E.instant || fast) { if (!alive()) throw SKIP; return; }
+      if (E.instant) { if (!alive()) throw SKIP; return; }
       let left = ms / E.speed;
       while (left > 0) {
         if (!alive()) throw SKIP;
