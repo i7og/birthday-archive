@@ -24,6 +24,7 @@ Snd.load('music', '../assets/sounds/matrix-clubbed-to-death.mp3', true, .26);
 Snd.load('outro', '../assets/sounds/matrix-monitor.mp3',      false, .40);
 Snd.load('win',   '../assets/sounds/rick-and-morty-intro.mp3', false, .50);
 Snd.load('intro', '../assets/sounds/rick-and-morty-intro.mp3', false, .45);
+Snd.load('mario', '../assets/sounds/mario-level-complete.mp3', false, .55);
 const introStartedAt = Date.now();
 Snd.play('intro');
 

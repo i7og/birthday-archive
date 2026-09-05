@@ -909,7 +909,7 @@ const SC10 = {
 
     const term = el('div', 's10-term');
     const promptNodes = C.s10.prompt.map(() => { const d = el('div', 'ln'); term.appendChild(d); return d; });
-    const bar = makeBar(C.s10.installLabel, 40);
+    const bar = makeBar(C.s10.installLabel, 40, 'rv');
     const sysNodes = C.s10.systems.map(() => { const d = el('div', 'ln'); term.appendChild(d); return d; });
     const logNodes = C.s10.installLog.map(() => { const d = el('div', 'ln'); term.appendChild(d); return d; });
     term.appendChild(bar);
@@ -952,20 +952,24 @@ const SC10 = {
     }
     await ctx.wait(300);
     for (let i = 0; i < C.s10.installLog.length; i++) {
-      await type(ctx, r.logNodes[i], '> ' + C.s10.installLog[i], 110);
-      await ctx.wait(140);
+      await type(ctx, r.logNodes[i], '> ' + C.s10.installLog[i], 62);
+      await ctx.wait(220);
     }
-    await runBar(ctx, r.bar, 100, 2400);
+    await ctx.wait(300);
+    show(r.bar);
     await ctx.wait(400);
+    await runBar(ctx, r.bar, 100, 2400);
+    Snd.play('mario');
+    await ctx.wait(300);
     show(r.done);
-    await ctx.wait(800);
+    await ctx.wait(900);
 
     show(r.hbd);
     r._stopFw = fireworks(r.fw);
     Snd.play('win');
+    await ctx.wait(900);
+    await showSeq(ctx, r.wishNodes, 950);
     await ctx.wait(700);
-    await showSeq(ctx, r.wishNodes, 520);
-    await ctx.wait(600);
     show(r.tail);
     await ctx.wait(6000);
   },
