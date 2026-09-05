@@ -655,7 +655,7 @@ const SC7 = {
 const SC8 = {
   hud: 'SCENE 08',
   build(root) {
-    root.className = 'scene';
+    root.className = 'scene s8';
     const H = head(C.s8.title, { sub: C.s8.sub });
     const grid = el('div', 's8-grid');
 
