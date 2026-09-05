@@ -251,6 +251,7 @@ const SC3 = {
     await ctx.wait(300);
     E.typingSound = false;
     show(r.alert);
+    Snd.alert();
     r.alert.classList.add('triple-flash');
     await ctx.wait(900);
     show(r.scanbox);
@@ -451,11 +452,15 @@ const ANDALUCIA =
   'L699,413 L638,411 L577,413 L528,415 L493,434 L455,456 L417,488 L386,515 ' +
   'L348,510 L302,497 L256,470 L241,425 L226,380 L172,353 L126,344 L73,327 Z';
 
-/* стилизованный контур городской черты Малаги — не географически точный,
-   просто рамка вокруг зумленных точек в том же визуальном языке, что ANDALUCIA */
+/* настоящая граница муниципалитета Малага (OpenStreetMap/Nominatim,
+   relation 340746), упрощена и спроецирована в этот viewBox с сохранением
+   истинных пропорций (долгота скорректирована на cos широты) */
 const MALAGA_OUTLINE =
-  'M46,46 L188,18 L332,30 L452,64 L494,132 L486,196 L432,246 L338,278 ' +
-  'L214,282 L108,256 L44,196 L20,120 Z';
+  'M125.8,130.2 L134.2,198.7 L158.0,222.3 L184.3,220.2 L166.2,271.8 L173.5,282.0 L190.4,280.3 L201.0,265.4 ' +
+  'L218.2,271.3 L235.2,253.1 L264.9,215.2 L283.1,193.6 L349.2,203.6 L346.7,184.2 L359.4,176.3 L347.4,170.1 ' +
+  'L369.6,132.6 L363.8,120.9 L382.7,118.9 L373.9,110.0 L394.2,84.2 L389.6,74.3 L375.3,79.1 L372.5,54.1 ' +
+  'L344.5,51.4 L305.6,18.0 L282.1,69.0 L258.6,61.8 L239.3,73.4 L226.0,63.1 L224.9,100.5 L186.6,133.5 ' +
+  'L156.8,145.3 L148.2,133.0 L125.8,130.2 Z';
 
 function pinNode(p, s) {
   const k = s || 1;
@@ -478,22 +483,6 @@ function pinNode(p, s) {
 
   anim.appendChild(box);
   g.appendChild(anim);
-  return g;
-}
-
-function malagaStreets() {
-  const g = ns('g', { class: 'streets' });
-  let seed = 7;
-  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-  for (let i = 0; i < 13; i++) {
-    const y = 12 + i * 22 + rnd() * 6;
-    g.appendChild(ns('path', { d: 'M0,' + y.toFixed(1) + ' L520,' + (y + (rnd() - .5) * 26).toFixed(1) }));
-  }
-  for (let i = 0; i < 16; i++) {
-    const x = 10 + i * 33 + rnd() * 8;
-    g.appendChild(ns('path', { d: 'M' + x.toFixed(1) + ',0 L' + (x + (rnd() - .5) * 30).toFixed(1) + ',300' }));
-  }
-  g.appendChild(ns('path', { class: 'coast', d: 'M0,262 Q140,240 268,258 T520,236' }));
   return g;
 }
 
@@ -521,7 +510,6 @@ const SC6 = {
     const zoom = el('div', 'mapbox mapbox--zoomin');
     zoom.appendChild(el('div', 'lbl', C.s6.zoomTitle));
     const zsvg = ns('svg', { viewBox: '0 0 520 300', preserveAspectRatio: 'xMidYMid meet' });
-    zsvg.appendChild(malagaStreets());
     const zoutline = ns('path', { class: 'outline', d: MALAGA_OUTLINE, pathLength: 1000 });
     zsvg.appendChild(zoutline);
     const zg = ns('g');
@@ -547,27 +535,27 @@ const SC6 = {
     return { H, regionLbl, outline, pins, cityPin, zoom, zoutline, zpins, status, sum, hot };
   },
   async play(ctx, r) {
-    await type(ctx, r.H.t, C.s6.title, 28); show(r.H.rule);
-    await ctx.wait(1000);
+    await type(ctx, r.H.t, C.s6.title, 23); show(r.H.rule);
+    await ctx.wait(1200);
     show(r.regionLbl);
-    await ctx.wait(1100);
+    await ctx.wait(1320);
     r.outline.classList.add('draw');
-    await ctx.wait(2200);
-    show(r.cityPin); Snd.play('blip'); await ctx.wait(900);
-    for (const p of r.pins) { show(p); Snd.play('blip'); await ctx.wait(780); }
-    await ctx.wait(500);
+    await ctx.wait(2640);
+    show(r.cityPin); Snd.play('blip'); await ctx.wait(1080);
+    for (const p of r.pins) { show(p); Snd.play('blip'); await ctx.wait(936); }
+    await ctx.wait(600);
     /* «подъезжаем» камерой к точке MÁLAGA перед тем, как открыть карту города */
     r.cityPin.classList.add('approach');
-    await ctx.wait(700);
+    await ctx.wait(840);
     show(r.zoom);
     r.cityPin.classList.remove('approach');
-    await ctx.wait(900);
+    await ctx.wait(1080);
     r.zoutline.classList.add('draw');
-    await ctx.wait(1000);
-    for (const p of r.zpins) { show(p); await ctx.wait(620); }
-    await ctx.wait(400);
-    await showSeq(ctx, [r.status, r.sum, r.hot], 520);
-    await ctx.wait(1500);
+    await ctx.wait(1200);
+    for (const p of r.zpins) { show(p); await ctx.wait(744); }
+    await ctx.wait(480);
+    await showSeq(ctx, [r.status, r.sum, r.hot], 624);
+    await ctx.wait(1800);
   }
 };
 
@@ -857,29 +845,29 @@ const SC9 = {
     for (const t of r.trends) { t.classList.add('in'); await ctx.wait(2700); }
     await ctx.wait(300);
     show(r.shift);
-    await ctx.wait(700);
+    await ctx.wait(2000);
 
     show(r.statsTitle);
-    await ctx.wait(500);
+    await ctx.wait(600);
     for (const st of r.stats) {
       show(st.row);
       if (st.s.raw == null) {
-        await countTo(ctx, st.v, st.s.value, st.s.value > 1000 ? 1200 : 650, st.s.prefix || '', st.s.suffix || '');
+        await countTo(ctx, st.v, st.s.value, st.s.value > 1000 ? 1440 : 780, st.s.prefix || '', st.s.suffix || '');
       }
-      await ctx.wait(500);
+      await ctx.wait(600);
     }
-    await ctx.wait(300);
+    await ctx.wait(360);
     show(r.cv.parentNode);
-    await countTo(ctx, r.cv, C.s9.coffee.value, 1800);
+    await countTo(ctx, r.cv, C.s9.coffee.value, 2160);
     show(r.calert);
-    await ctx.wait(700);
+    await ctx.wait(840);
     show(r.repairsTitle);
-    await ctx.wait(450);
-    await showSeq(ctx, r.repairs, 450);
-    await ctx.wait(400);
+    await ctx.wait(540);
+    await showSeq(ctx, r.repairs, 540);
+    await ctx.wait(480);
     show(r.foot);
-    await runBar(ctx, r.bar, C.s9.progress.to, 1600);
-    await ctx.wait(1400);
+    await runBar(ctx, r.bar, C.s9.progress.to, 1920);
+    await ctx.wait(1680);
   }
 };
 

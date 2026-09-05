@@ -368,7 +368,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s5-block .photo img{ object-fit:contain; background:#020704; }
 .s5-family .photo img{ object-fit:cover; object-position:center 32%; transform:scale(1.12); }
 .s5-relationship .photo img{ object-fit:cover; }
-.s5-block .cap{ font-size:.82em; letter-spacing:.06em; color:var(--g-mid); margin-top:7px; text-align:left; }
+.s5-block .cap{ font-size:1.23em; letter-spacing:.06em; color:var(--g-mid); margin-top:7px; text-align:left; }
 /* матричный CRT-тон здесь заметно мягче, чем на остальных фото сайта */
 .s5-block .photo.has-img::before{
   background:
@@ -765,8 +765,6 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   filter:drop-shadow(0 0 6px rgba(78,240,138,.35));
 }
 .mapbox svg .outline.draw{ transition:stroke-dashoffset 2s ease; stroke-dashoffset:0; }
-.streets path{ fill:none; stroke:rgba(78,240,138,.22); stroke-width:1; }
-.streets .coast{ stroke:var(--g-mid); stroke-width:2; opacity:.8; }
 
 /* --- кадр 7 --- */
 .s7-stack{ display:flex; flex-direction:column; gap:14px; }
