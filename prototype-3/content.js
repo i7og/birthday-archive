@@ -160,7 +160,7 @@ window.CONTENT = {
     quote: ["A YEAR IS NOT JUST WHAT YOU DO.", "IT IS ALSO WHO YOU SPEND IT WITH…"],
     blocks: [
       { key:"FAMILY",       caption:"FAMILY IMPORTANCE: HIGH",        src:"photos/s5-family.jpg" },
-      { key:"COLLEAGUES",   caption:"COLLEAGUES CONNECTION: ACTIVE",  src:"photos/s5-colleagues.jpg", logo:"photos/optimus-logo.jpg" },
+      { key:"COLLEAGUES",   caption:"COLLEAGUES CONNECTION: ACTIVE",  src:"photos/s5-colleagues.jpg", logo:"photos/optimus-logo.png" },
       { key:"FRIENDSHIP",   caption:"FRIENDSHIP LEVEL: HIGH",         src:"photos/s5-friends.jpg", collage:true },
       { key:"RELATIONSHIP", caption:"RELATIONSHIP SKILL LEVEL: MAX",  src:"photos/s5-relationship.jpg" }
     ],
