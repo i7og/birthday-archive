@@ -89,8 +89,12 @@ window.CONTENT = {
         head:"DATA MISSED",
         body:["HISTORICAL DATA UNAVAILABLE","","THE OBSERVER HAS NOT ENTERED THE SYSTEM YET"] },
 
-      { id:"dec", photoOnly:true,
-        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" } },
+      { id:"dec", n:"03", m:"DECEMBER 2025", icon:"🐶",
+        head:"NEW IDEA DETECTED",
+        body:["POTENTIAL NEW LIFE COMPANION: DOG 🐶","STATUS: CONSIDERING","FUTURE DOG OWNER: MAYBE"],
+        lock:{ from:"DECISION: PENDING", to:"DECISION: PENDING" },
+        photo:{ src:"photos/s4-december-dog.png", label:"DOG PHOTO", title:"DECEMBER — NEW IDEA" },
+        quote:"[ A NEW CHAPTER UNDER CONSIDERATION: ? ]" },
 
       { id:"jan", n:"04", m:"JANUARY 2026", icon:"🔄",
         head:"DECISION UPDATED",
@@ -102,8 +106,11 @@ window.CONTENT = {
         body:["FIRST PROPER SUCCESSFUL DATE: DETECTED","","🗺️ MÁLAGA EXPLORATION: UNLOCKED","","🍰 PISTACHIO CHEESECAKE EATING: ACTIVATED","","☕ COFFEE CONSUMPTION: INCREASED"],
         lock:{ from:"NEW CHAPTER: STARTED", to:"NEW CHAPTER: STARTED" } },
 
-      { id:"mar", photoOnly:true,
-        photo:{ src:"photos/s4-march-kiss.png", label:"KISS PHOTO", title:"MARCH — FIRST KISS" } },
+      { id:"mar", n:"06", m:"MARCH 2026", icon:"💋", ribbon:"FIRST KISS OF 2026",
+        head:"NEW ACHIEVEMENT",
+        body:["🏆 FIRST KISS OF 2026","🍰 PISTACHIO CHEESECAKE: UNLIMITED","☕ COFFEE TIME: INCREASED RAPIDLY"],
+        photo:{ src:"photos/s4-march-kiss.png", label:"KISS PHOTO", title:"MARCH — FIRST KISS" },
+        lock:{ from:"ACHIEVEMENT: UNLOCKED", to:"ACHIEVEMENT: UNLOCKED" } },
 
       { id:"apr", n:"07", m:"APRIL 2026", icon:"🛥️",
         head:"NEW SKILL TREE",
@@ -119,8 +126,11 @@ window.CONTENT = {
         bar2:{ label:"FREE TIME", to:20 },
         lock:{ from:"STUDY MODE: ACTIVATED", to:"STUDY MODE: ACTIVATED" } },
 
-      { id:"jun", photoOnly:true,
-        photo:{ src:"photos/s4-june-boat.png", label:"PHOTO / SCAN", title:"PATRÓN — JUNE 2026" } },
+      { id:"jun", n:"09", m:"JUNE 2026", icon:"🏆",
+        head:"MAJOR ACHIEVEMENT — BOAT LICENSE",
+        body:["SAILING EXAMS: PASSED ✅","BOAT DRIVER LICENSE: UNLOCKED","NEW STATUS: ⛵ PATRÓN","PREVIOUS SKILL LEVEL: BEGINNER","CURRENT SKILL LEVEL: BOAT PATRON"],
+        lock:{ from:"LICENSE: LOCKED", to:"LICENSE: UNLOCKED ✓" },
+        photo:{ src:"photos/s4-june-boat.jpg", label:"PHOTO / SCAN", title:"PATRÓN — JUNE 2026" } },
 
       { id:"jul", n:"10", m:"JULY 2026", icon:"⚽",
         head:"SUMMER CHALLENGE",
