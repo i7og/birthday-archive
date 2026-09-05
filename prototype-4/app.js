@@ -13,6 +13,13 @@ const refs = [];
 const roots = [];
 let started = Date.now();
 let startTimers = [];
+let currentCtx = null;
+
+/* «Пропустить»: домотать текущую сцену до конца одним кликом/пробелом,
+   не трогая E.instant (тот живёт дольше одной сцены и сломал бы автоплей). */
+function skipReveal() {
+  if (currentCtx) currentCtx.skip();
+}
 
 $('#prototypeVersion').textContent = 'PROTOTYPE ' + window.PROTOTYPE_VERSION;
 
@@ -99,6 +106,7 @@ async function goTo(i) {
   if (E.instant) gapEl.classList.remove('on');
 
   const ctx = ctxFor(token);
+  currentCtx = ctx;
   try {
     await SCENES[i].play(ctx, refs[i]);
   } catch (e) {
@@ -155,6 +163,14 @@ function initControls() {
   $('#btnNext').addEventListener('click', () => goTo(cur + 1));
   $('#btnReplay').addEventListener('click', () => goTo(cur));
   $('#btnPause').addEventListener('click', togglePause);
+  $('#btnSkip').addEventListener('click', skipReveal);
+
+  /* клик по самому кадру — не по элементам с собственным кликом (фото, ссылки) —
+     промативает текущую сцену до конца, для тех, кто не хочет ждать. */
+  viewport.addEventListener('click', e => {
+    if (e.target.closest('.photo, a, button')) return;
+    skipReveal();
+  });
 
   $('#btnAuto').addEventListener('click', e => {
     E.autoplay = !E.autoplay;
@@ -211,6 +227,7 @@ function initControls() {
     if (e.key === 'ArrowRight') { e.preventDefault(); goTo(cur + 1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(cur - 1); }
     if (e.code === 'Space')     { e.preventDefault(); togglePause(); }
+    if (e.key === 'Enter')      { e.preventDefault(); skipReveal(); }
     if (e.key === 'r' || e.key === 'к') goTo(cur);
   });
 }

@@ -928,7 +928,7 @@ const SC10 = {
     fw.id = 'fireworks';
 
     root.append(wrap, hbd, wish, tail, fw);
-    return { arch, hlT, hlNodes, savedNodes, thanks, promptNodes, bar, sysNodes, logNodes, done, hbd, wishNodes, tail, fw };
+    return { root, arch, hlT, hlNodes, savedNodes, thanks, promptNodes, bar, sysNodes, logNodes, done, hbd, wishNodes, tail, fw };
   },
   async play(ctx, r) {
     Snd.play('outro');
@@ -965,6 +965,7 @@ const SC10 = {
     await ctx.wait(900);
 
     show(r.hbd);
+    r.root.classList.add('finale-warm');
     r._stopFw = fireworks(r.fw);
     Snd.play('win');
     await ctx.wait(900);

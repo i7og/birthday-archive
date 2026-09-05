@@ -1,2 +1,2 @@
 /* Единственный номер ревизии; повышается вручную в каждом обычном коммите. */
-window.PROTOTYPE_VERSION = '4.0';
+window.PROTOTYPE_VERSION = '4.1';
