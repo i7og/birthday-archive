@@ -140,8 +140,11 @@ window.CONTENT = {
               body:["🇪🇸 TEAM SELECTED: SPAIN","MATCHES WATCHED: NO DATA AVAILABLE"],
               lock:"EMOTIONAL INVESTMENT: 100%" } },
 
-      { id:"aug", photoOnly:true,
-        photo:{ src:"photos/s4-august-beach.png", label:"PHOTO / SCAN", title:"TORREMOLINOS — AUGUST 2026" } },
+      { id:"aug", n:"11", m:"AUGUST 2026", icon:"🏖️",
+        head:"CHILL MODE ACTIVATED",
+        body:["🌊 TORREMOLINOS BEACH TIME","🍧 SOLERO: MANY","👯 FRIENDS TIME: PLENTY","🌾 BUCKWHEAT: TRIED"],
+        lock:{ from:"VIBES: CHILL 😎", to:"VIBES: CHILL 😎" },
+        photo:{ src:"photos/s4-august-beach.jpg", label:"PHOTO / SCAN", title:"TORREMOLINOS — AUGUST 2026" } },
 
       { id:"sep", n:"12", m:"SEPTEMBER 2026", icon:"🎂",
         head:"PREVIOUS VERSION: COMPLETED ✅",
