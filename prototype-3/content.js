@@ -185,20 +185,18 @@ window.CONTENT = {
     ],
     malaga: { name:"MÁLAGA", x:534, y:386 },
     zoomTitle: "MÁLAGA",
-    /* реальные координаты (WGS84, OpenStreetMap/Nominatim), спроецированные в
-       этот viewBox тем же способом, что и MALAGA_OUTLINE (cos-коррекция по
-       широте, единый масштаб). Маркер стоит строго по географии; у четырёх
-       точек центральной группы (они в 300–900 м друг от друга в реальности)
-       вынесена только подпись — labelOffset — с leader line к маркеру.
-       Все 4 подписи вынесены единым столбцом вправо (не в разные стороны),
-       чтобы leader-линии не перекрещивались веером друг с другом — только
-       короткий, аккуратный сходящийся пучок у самого кластера маркеров. */
+    /* фон теперь фото карты (photos/s6-andalucia-map.png) — в масштабе
+       всей провинции все 5 точек центра Малаги (300–900 м друг от друга
+       в реальности) физически совмещаются в одну точку у готового пина
+       "MÁLAGA", уже нарисованного на фото. Маркеры — плотный кластер
+       вокруг этой точки; у каждого вынесена только подпись — labelOffset —
+       единым столбцом вправо с leader line, чтобы линии не перекрещивались */
     zoomPins: [
-      { name:"BOTANICAL GARDEN", x:235.2, y:61.3 },
-      { name:"GIBRALFARO",       x:278.0, y:203.0, labelOffset:{dx:100.0, dy:-101.4} },
-      { name:"ALCAZABA",         x:266.0, y:211.6, labelOffset:{dx:116.7, dy:-60.6} },
-      { name:"PICASSO MUSEUM",   x:259.2, y:209.6, labelOffset:{dx:126.1, dy:-5.0} },
-      { name:"CITY CENTRE",      x:248.4, y:211.3, labelOffset:{dx:141.1, dy:45.4} }
+      { name:"BOTANICAL GARDEN", x:243.6, y:141.9, labelOffset:{dx:78.3, dy:-155.4} },
+      { name:"GIBRALFARO",       x:257.6, y:149.9, labelOffset:{dx:58.9, dy:-116.5} },
+      { name:"ALCAZABA",         x:253.6, y:157.9, labelOffset:{dx:64.4, dy:-77.6} },
+      { name:"PICASSO MUSEUM",   x:247.6, y:155.9, labelOffset:{dx:72.8, dy:-24.9} },
+      { name:"CITY CENTRE",      x:249.6, y:151.9, labelOffset:{dx:70.0, dy:30.7}}
     ],
     summary: ["TOTAL LOCATIONS: 8", "MÁLAGA SUB-LOCATIONS: 5"],
     highlight: ["TORREMOLINOS", "THE MOST VISITED LOCATION OF VERSION 41.0"]

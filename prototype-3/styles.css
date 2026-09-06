@@ -828,6 +828,10 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .mapbox svg .outline.draw{ transition:stroke-dashoffset 2s ease; stroke-dashoffset:0; }
 /* coastline + river — открытые линии, не замкнутый полигон, без заливки */
 .mapbox svg .outline--lines{ fill:none; stroke-width:2; }
+/* фото карты вместо отрисованного контура — вместо «рисования» линии
+   просто мягко проявляется целиком */
+.mapbox svg .outline-photo{ opacity:0; transition:opacity 2s ease; }
+.mapbox svg .outline-photo.draw{ opacity:1; }
 
 /* --- кадр 7 --- */
 .s7-stack{ display:flex; flex-direction:column; gap:14px; }

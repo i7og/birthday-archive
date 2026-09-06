@@ -452,18 +452,6 @@ const ANDALUCIA =
   'L699,413 L638,411 L577,413 L528,415 L493,434 L455,456 L417,488 L386,515 ' +
   'L348,510 L302,497 L256,470 L241,425 L226,380 L172,353 L126,344 L73,327 Z';
 
-/* настоящие береговая линия Средиземного моря и русло реки Гуадальмедина
-   в районе центра Малаги (OpenStreetMap/Overpass: way natural=coastline,
-   way waterway=river "Río Guadalmedina"), упрощены и спроецированы в этот
-   viewBox с сохранением истинных пропорций (долгота скорректирована на
-   cos широты) — это открытые линии, не замкнутый контур муниципалитета,
-   выбраны как реальный geographic anchor для zoom-карты центра города */
-const MALAGA_OUTLINE =
-  'M230.3,264.2 L231.2,262.9 M236.2,265.4 L238.5,262.1 M256.9,259.2 L245.9,250.1 L262.1,243.0 ' +
-  'L244.8,243.8 L272.2,220.9 L268.1,265.6 M274.2,265.2 L286.3,223.7 L331.8,207.6 M223.6,36.6 ' +
-  'L216.8,44.1 L217.9,47.5 L222.7,50.3 L223.2,53.7 L215.6,75.0 L226.5,79.1 L240.8,113.7 ' +
-  'L236.4,190.2 L238.5,214.6 L236.7,228.8 L236.8,251.8';
-
 function pinNode(p, s) {
   const k = s || 1;
   const g = ns('g', {
@@ -522,7 +510,16 @@ const SC6 = {
     const zoom = el('div', 'mapbox mapbox--zoomin');
     zoom.appendChild(el('div', 'lbl', C.s6.zoomTitle));
     const zsvg = ns('svg', { viewBox: '0 0 520 300', preserveAspectRatio: 'xMidYMid meet' });
-    const zoutline = ns('path', { class: 'outline outline--lines', d: MALAGA_OUTLINE, pathLength: 1000 });
+    /* реальное фото карты (photos/s6-andalucia-map.png) вместо отрисованного
+       контура. Фото 1565x1005 подогнано вручную (x/y/width/height, без
+       preserveAspectRatio) так, чтобы заполнить весь 520x300 viewBox без
+       чёрных полей: обрезка распределена между верхним и нижним тёмным
+       отступом самого фото (там, где под кадром нет реальной геометрии),
+       не затрагивая контур или подписанную на фото точку MÁLAGA */
+    const zoutline = ns('image', {
+      class: 'outline-photo', href: 'photos/s6-andalucia-map.png',
+      x: 0, y: -9.64, width: 520, height: 334, preserveAspectRatio: 'none'
+    });
     zsvg.appendChild(zoutline);
     const zg = ns('g');
     zsvg.appendChild(zg);
