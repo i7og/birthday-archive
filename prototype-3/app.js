@@ -23,10 +23,7 @@ Snd.load('blip',  '../assets/sounds/matrix-materialize.mp3',  false, .22);
 Snd.load('music', '../assets/sounds/matrix-clubbed-to-death.mp3', true, .26);
 Snd.load('outro', '../assets/sounds/matrix-monitor.mp3',      false, .40);
 Snd.load('win',   '../assets/sounds/rick-and-morty-intro.mp3', false, .50);
-Snd.load('intro', '../assets/sounds/rick-and-morty-intro.mp3', false, .45);
 Snd.load('mario', '../assets/sounds/mario-level-complete.mp3', false, .55);
-const introStartedAt = Date.now();
-Snd.play('intro');
 
 /* ---------------- масштабирование сцены под экран ---------------- */
 function fit() {
@@ -124,7 +121,6 @@ async function jumpTo(i) {
   startTimers = [];
   E.token++; // останавливает текущую сцену или заставку
   Snd.unlockType();
-  Snd.stop('intro');
   bootEl.classList.add('gone');
   $('#flicker').classList.add('on');
   gapEl.classList.remove('on');
@@ -269,16 +265,11 @@ async function runBoot() {
 }
 
 function start() {
-  /* Загрузка идёт внутри уже запущенного интро; слайд 1 входит на его окончании. */
-  const remainingIntro = Math.max(0, 8000 - (Date.now() - introStartedAt));
-  startTimers.push(setTimeout(() => {
-    Snd.stop('intro');
-    bootEl.classList.add('gone');
-    $('#flicker').classList.add('on');
-    started = Date.now();
-    gapEl.classList.remove('on');
-    goTo(0);
-  }, remainingIntro));
+  bootEl.classList.add('gone');
+  $('#flicker').classList.add('on');
+  started = Date.now();
+  gapEl.classList.remove('on');
+  goTo(0);
 }
 
 /* ---------------- старт ---------------- */

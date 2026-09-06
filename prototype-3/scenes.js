@@ -344,7 +344,7 @@ const SC4 = {
     return { H, meta, noteA, noteB, cards, foot };
   },
   async play(ctx, r) {
-    show(r.H.t); show(r.H.rule);
+    await type(ctx, r.H.t, C.s4.title, 28); show(r.H.rule);
     await ctx.wait(1300);
     show(r.meta);
     await ctx.wait(520);
@@ -363,7 +363,7 @@ const SC4 = {
       c.classList.add('settle');
       await ctx.wait(260);
 
-      await revealWords(ctx, c._words, 450);
+      await revealWords(ctx, c._words, 300);
       for (const [bar, to] of (c._bars || [])) await runBar(ctx, bar, to, 900);
       if (c._loaders) {
         for (const b of c._loaders) { b.textContent = 'LOADING'; await ctx.wait(150); }
@@ -634,7 +634,7 @@ const SC7 = {
       await ctx.wait(650);
       c.classList.remove('enter');
       c.classList.add('settle');
-      if (c._words) await revealWords(ctx, c._words, 420);
+      if (c._words) await revealWords(ctx, c._words, 300);
       await ctx.wait(750);
     }
     await ctx.wait(400);
@@ -729,7 +729,7 @@ const SC8 = {
       await ctx.wait(620);
       c.classList.remove('enter');
       c.classList.add('settle');
-      if (c._words) await revealWords(ctx, c._words, 82);
+      if (c._words) await revealWords(ctx, c._words, 300);
       await ctx.wait(420);
     }
 
@@ -838,7 +838,7 @@ const SC9 = {
     return { H, trendsTitle, statsTitle, repairsTitle, trends, shift, stats, cv, calert, repairs, foot, bar };
   },
   async play(ctx, r) {
-    show(r.H.t); show(r.H.rule);
+    await type(ctx, r.H.t, C.s9.title, 28); show(r.H.rule);
     await ctx.wait(400);
     show(r.trendsTitle);
     await ctx.wait(500);
