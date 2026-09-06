@@ -6,7 +6,6 @@ const stage    = $('#stage');
 const viewport = $('#viewport');
 const scenesEl = $('#scenes');
 const gapEl    = $('#gap');
-const bootEl   = $('#boot');
 
 let cur = -1;
 const refs = [];
@@ -121,7 +120,6 @@ async function jumpTo(i) {
   startTimers = [];
   E.token++; // останавливает текущую сцену или заставку
   Snd.unlockType();
-  bootEl.classList.add('gone');
   $('#flicker').classList.add('on');
   gapEl.classList.remove('on');
 
@@ -203,7 +201,6 @@ function initControls() {
       jumpTo(n === 0 ? 9 : n - 1);
       return;
     }
-    if (!bootEl.classList.contains('gone')) return;
     if (e.key === 'ArrowRight') { e.preventDefault(); goTo(cur + 1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(cur - 1); }
     if (e.code === 'Space')     { e.preventDefault(); togglePause(); }
@@ -228,44 +225,7 @@ function togglePause() {
   $('#stage').classList.toggle('is-paused', E.paused);
 }
 
-/* ---------------- полноценная загрузка «старого компьютера» ---------------- */
-const BOOTLOG = [
-  'SYS-41 PERSONAL ARCHIVE OS   v41.0',
-  'COPYRIGHT (C) 1984',
-  '',
-  'MEMORY TEST ................. 640K OK',
-  'DETECTING STORAGE ........... ARCHIVE FOUND',
-  'LOADING KERNEL .............. OK',
-];
-const BOOTLOG2 = [
-  'MOUNTING /memories .......... OK',
-  'CALIBRATING CRT ............. OK',
-  'ARCHIVE READY...............'
-];
-
-async function runBoot() {
-  const log = $('#bootLog');
-  const ctx = ctxFor(E.token);
-  const line = t => { const d = el('div'); log.appendChild(d); return d; };
-
-  for (let i = 0; i < BOOTLOG.length; i++) {
-    await type(ctx, line(), BOOTLOG[i], 150);
-    await ctx.wait(90);
-  }
-  const hangLine = line();
-  await type(ctx, hangLine, 'MOUNTING /memories .........', 150);
-  bootEl.classList.add('hangs');
-  await ctx.wait(1900);
-  bootEl.classList.remove('hangs');
-  hangLine.classList.add('dim');
-  for (const t of BOOTLOG2) { await type(ctx, line(), t, 150); await ctx.wait(90); }
-
-  await ctx.wait(400);
-  start();
-}
-
 function start() {
-  bootEl.classList.add('gone');
   $('#flicker').classList.add('on');
   started = Date.now();
   gapEl.classList.remove('on');
@@ -276,4 +236,4 @@ function start() {
 buildAll();
 initControls();
 fit();
-runBoot().catch(() => {});
+start();

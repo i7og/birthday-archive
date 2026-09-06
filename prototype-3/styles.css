@@ -369,6 +369,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s5-block .photo img{ object-fit:contain; background:#020704; }
 .s5-family .photo img{ object-fit:cover; object-position:center 32%; transform:scale(1.12); }
 .s5-relationship .photo img{ object-fit:cover; }
+/* COLLEAGUES: фото 4:3 в вертикальной рамке — простой object-fit:cover обрезал
+   бы крайних людей по бокам (группа занимает почти всю ширину кадра), поэтому
+   вместо cover используем контролируемый zoom поверх contain: рамка заполняется
+   почти полностью, но с запасом по краям, чтобы ни одно лицо не обрезалось */
+.s5-colleagues .photo img{ transform:scale(1.1); }
 .s5-block .cap{ font-size:1.12em; letter-spacing:.06em; color:var(--g-mid); margin-top:7px; text-align:left; white-space:nowrap; }
 /* без матричного CRT-тона — здесь фото должны читаться чисто */
 .s5-block .photo.has-img::before{ content:none; }
@@ -634,33 +639,6 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 }
 #gap.on{ display:flex; }
 
-/* ============================ BOOT ============================ */
-
-#boot{
-  position:fixed; inset:0; z-index:200; background:#000;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;
-  padding:8vw; text-align:left;
-}
-#boot .bootlog{ font-size:clamp(11px,1.35vw,17px); line-height:2; width:min(760px,92vw); color:var(--g); }
-#boot .bootlog .dim{ color:var(--g-dim); }
-.loading-archive{
-  border:1px solid var(--g); color:var(--g-bright); background:rgba(78,240,138,.08);
-  padding:14px 34px; font-size:clamp(12px,1.4vw,17px); letter-spacing:.24em;
-  box-shadow:0 0 24px rgba(78,240,138,.16);
-}
-.loading-archive span{ display:inline-block; margin-right:10px; animation:loadingSpin 1s steps(8,end) infinite; }
-@keyframes loadingSpin{ to{ transform:rotate(360deg); } }
-#boot .start{
-  border:1px solid var(--g); color:var(--g-bright); background:rgba(78,240,138,.08);
-  padding:14px 34px; font-family:inherit; font-size:clamp(12px,1.4vw,17px);
-  letter-spacing:.24em; cursor:pointer; opacity:0; transition:opacity .5s ease;
-}
-#boot .start.in{ opacity:1; }
-#boot .start:hover{ background:rgba(78,240,138,.18); box-shadow:0 0 24px rgba(78,240,138,.35); }
-#boot.hangs{ animation:hang .55s steps(2,end) 3; }
-@keyframes hang{ 0%{filter:none;transform:none} 40%{filter:blur(1.4px) brightness(1.5);transform:translateX(2px)} 100%{filter:none} }
-#boot.gone{ display:none; }
-
 /* ============================ ОКНО С ФОТО ============================ */
 
 #win{
@@ -857,6 +835,13 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
                        background:#020704; filter:saturate(.82) contrast(1.03); }
 .s5-collage > div{ border:1px solid var(--line-soft); cursor:pointer; }
 .s5-collage > div:hover{ border-color:var(--g); }
+/* FRIENDSHIP-коллаж: каждое фото — широкий групповой кадр, а ячейки почти
+   квадратные, поэтому обычный cover обрезал бы людей по краям. Как и для
+   COLLEAGUES, вместо cover — контролируемый zoom поверх contain, подобранный
+   отдельно под композицию каждого фото так, чтобы все лица остались в кадре */
+.s5-collage > div:nth-child(1) img{ transform:scale(1.8); }   /* трое обнимаются в центре кадра */
+.s5-collage > div:nth-child(2) img{ transform:scale(1.1); }   /* группа почти во весь кадр — минимальный запас */
+.s5-collage > div:last-child:nth-child(3) img{ transform:scale(1.2); } /* большая группа, лица не доходят до краёв */
 
 /* --- кадр 10 --- */
 .s10-arch .ph{ margin-top:16px; font-size:.82em; letter-spacing:.18em; color:var(--g-dim); }
