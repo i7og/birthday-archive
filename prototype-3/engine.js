@@ -173,6 +173,7 @@ function photoSlot(cfg, cls) {
   const img = el('img');
   img.alt = cfg.title || '';
   img.loading = 'lazy';
+  img.draggable = false;
   img.addEventListener('load', () => box.classList.add('has-img'));
   img.addEventListener('error', () => img.remove());
   img.src = cfg.src;

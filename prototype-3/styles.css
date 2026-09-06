@@ -33,7 +33,13 @@ body{
   overflow:hidden;
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
+  /* презентация не содержит текста, который зрителю нужно копировать —
+     запрещаем случайное browser-selection (синяя подсветка, drag-preview
+     картинки) по всей вёрстке. Не трогает click/pointerdown/кнопки —
+     это только про выделение и drag, pointer-events нигде не отключаем */
+  -webkit-user-select:none; user-select:none;
 }
+img{ -webkit-user-drag:none; user-select:none; -webkit-user-select:none; }
 
 /* ============================ SHELL ============================ */
 
@@ -636,18 +642,26 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 
 /* ============================ SCENE 11 ============================ */
 
-/* min-height зарезервирован под ОБЕ строки intro уже заполненными (измерено:
-   ~50px) — иначе пустые .ln рушатся почти до 0 и .s11-stage (flex:1 1 auto)
-   сначала занимает лишнее место, а потом заметно сжимается по мере печати */
-.s11-intro{ display:flex; flex-direction:column; gap:6px; font-size:1.05em; letter-spacing:.1em;
-            color:var(--g-mid); margin-bottom:16px; flex:0 0 auto; min-height:50px; }
-.s11-intro .ln{ white-space:pre-wrap; }
-
+/* recovery-area (фото + Matrix + scratch-canvas) занимает ВСЮ доступную
+   область сцены: .s11-intro убран из document flow (position:absolute),
+   поэтому .s11-stage остаётся ЕДИНСТВЕННЫМ flex-элементом в .scene.s11 и
+   flex:1 1 auto растягивает его на всё место, ранее отнятое intro. Не
+   делаем .s11-stage самому position:absolute;inset:0 относительно
+   .scene.s11 — так он лёг бы поверх padding сцены и закрыл собой и HUD
+   в углу (тот рисуется поверх #scenes, но у самой сцены нет своего
+   отступа от рамки), и декоративную .frame (у неё z-index ниже #scenes) */
 .s11-stage{
   flex:1 1 auto; position:relative; overflow:hidden; min-height:0;
   border:1px solid var(--line); background:#020704;
   box-shadow:0 0 24px rgba(78,240,138,.10);
 }
+.s11-intro{
+  position:absolute; left:16px; top:14px; z-index:10;
+  display:flex; flex-direction:column; gap:6px; font-size:1.05em; letter-spacing:.1em;
+  color:var(--g-mid); background:rgba(0,5,2,.75); padding:8px 12px;
+}
+.s11-intro .ln{ white-space:pre-wrap; }
+
 .s11-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
 .s11-canvas{
   position:absolute; inset:0; width:100%; height:100%;
@@ -658,6 +672,9 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
      достаточная страховка на случай, если сам img ещё не отрисован */
   cursor:none; touch-action:none; -webkit-user-select:none; user-select:none;
 }
+/* автодочистка при 90% (см. AUTO_CLEAN_THRESHOLD) — короткое угасание
+   остатка маски, а не мгновенный clearRect */
+.s11-canvas.clearing{ transition:opacity .62s ease; opacity:0; }
 .s11-canvas.glitch{ animation:s11glitch .13s steps(2,end) 4; }
 @keyframes s11glitch{
   0%{ transform:none; filter:none; }
@@ -689,6 +706,10 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 }
 .s11-hint div:last-child{ margin-top:8px; font-size:.78em; letter-spacing:.12em; color:var(--g-dim); text-shadow:none; }
 .s11-hint.hide{ opacity:0; }
+/* .rv.in{transform:none} (общий reveal-класс) специфичнее одного класса
+   .s11-hint и перебивает центрирующий translate(-50%,-50%) после показа —
+   возвращаем его тем же правилом, но с более высокой специфичностью */
+.s11-hint.rv.in{ transform:translate(-50%,-50%); }
 
 .s11-progress{
   position:absolute; left:16px; bottom:14px; z-index:4;
@@ -698,8 +719,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 }
 .s11-progress .val{ color:var(--g-bright); min-width:3.2em; text-align:right; }
 
+/* top-right, а не top-left — .s11-intro теперь тоже overlay в верхнем
+   левом углу и остаётся на экране до конца сцены, так что финальная
+   плашка не должна с ним пересекаться */
 .s11-final{
-  position:absolute; left:16px; top:14px; z-index:6;
+  position:absolute; right:16px; top:14px; z-index:6;
   padding:9px 14px; border:1px solid var(--line); background:rgba(3,13,7,.78);
   letter-spacing:.1em; opacity:0; transform:translateY(-8px);
   transition:opacity .5s ease, transform .5s ease;
@@ -835,8 +859,13 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   .s6-grid{ grid-template-columns:1fr; }
   .mapbox{ min-height:280px; }
   .s7-grid,.s8-grid,.s9-grid,.s10-wrap{ grid-template-columns:1fr; }
-  .s11-stage{ min-height:320px; }
   .s11-cursor{ --s11r:65px; }
+  /* на узком экране .s11-intro (top-left) и .s11-final (top-right)
+     физически не помещаются рядом и накладываются друг на друга —
+     переносим итоговую плашку вниз, где и так уже есть свободный
+     bottom-right (progress занимает только bottom-left) */
+  .s11-intro{ font-size:.92em; max-width:calc(100% - 32px); }
+  .s11-final{ top:auto; right:16px; bottom:14px; }
   .s7-footer{ position:static; height:auto; flex-wrap:wrap; margin-top:18px; gap:12px; }
   .s7-rm{ flex:0 0 100%; height:110px; }
   .s7-stream{ flex:0 0 100%; order:3; }

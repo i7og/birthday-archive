@@ -1313,32 +1313,36 @@ function corruptedMask(canvas, photoBox) {
   }
   function progressPct() { return Math.min(100, Math.round((erasedCount / (cols * rows)) * 100)); }
 
-  let onProgress = null, onRecovered = null, onVerifying = null;
+  /* 0-89% — целиком ручной scratch. На пороге запускается один раз
+     короткая авто-дочистка остатка (см. complete()) — не мгновенный
+     clearRect, который выглядел бы слишком резко, а короткая анимация. */
+  const AUTO_CLEAN_THRESHOLD = 90;
+
+  let onProgress = null, onRecovered = null, onVerifying = null, onCursorHide = null;
   function enableScratch(cbs) {
     onProgress = cbs.onProgress; onRecovered = cbs.onRecovered; onVerifying = cbs.onVerifying;
+    onCursorHide = cbs.onCursorHide;
     canvas.addEventListener('pointerdown', downH);
     canvas.addEventListener('pointermove', moveH);
     addEventListener('pointerup', upH);
     addEventListener('pointercancel', upH);
     sampleIv = setInterval(() => {
-      if (!dirty) return;
+      if (!dirty || completed) return;
       dirty = false;
       const pct = progressPct();
       if (onProgress) onProgress(pct);
-      /* «завершение» — это только статус-уведомление (см. onVerifying/
-         onRecovered), НЕ автоматическая очистка маски. Царапать можно
-         и после него — то, что пользователь не стёр сам, останется на
-         экране сколько угодно; canvas никогда не исчезает сам по себе. */
-      if (pct >= 97 && !completed) {
-        completed = true;
-        if (onVerifying) onVerifying();
-        Snd.play('scan');
-        canvas.classList.add('glitch');
-        setTimeout(() => { if (onRecovered) onRecovered(); }, 550);
-      }
+      if (pct >= AUTO_CLEAN_THRESHOLD) complete();
     }, 180);
   }
+  function stopScratchInput() {
+    canvas.removeEventListener('pointerdown', downH);
+    canvas.removeEventListener('pointermove', moveH);
+    removeEventListener('pointerup', upH);
+    removeEventListener('pointercancel', upH);
+    pointerId = null; lastPt = null;
+  }
   function downH(e) {
+    if (completed) return;
     pointerId = e.pointerId;
     canvas.setPointerCapture(pointerId);
     lastPt = null;
@@ -1346,17 +1350,44 @@ function corruptedMask(canvas, photoBox) {
     if (onProgress) onProgress(progressPct());
   }
   function moveH(e) {
-    if (e.pointerId !== pointerId) return;
+    if (completed || e.pointerId !== pointerId) return;
     if (e.buttons === 0) return;
     eraseAt(ptFromEvent(e));
   }
   function upH() { pointerId = null; lastPt = null; }
+  /* срабатывает РОВНО один раз (см. guard completed=true в самом начале —
+     ни interval, ни ещё один pointer-эвент не смогут вызвать её повторно):
+     1. прекращает ручной scratch и прячет курсор-индикатор
+     2. показывает статус «проверка»
+     3. короткий glitch, затем плавное угасание остатка маски (~250+620мс,
+        не мгновенно) — и только ПОСЛЕ него прогресс прыгает на 100% и
+        показывается финальный экран */
+  function complete() {
+    if (completed) return;
+    completed = true;
+    if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
+    stopScratchInput();
+    if (onCursorHide) onCursorHide();
+    if (onVerifying) onVerifying();
+    Snd.play('scan');
+    canvas.classList.add('glitch');
+    setTimeout(() => {
+      canvas.classList.add('clearing');
+      setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (onProgress) onProgress(100);
+        if (onRecovered) onRecovered();
+      }, 620);
+    }, 220);
+  }
   /* только для E.instant (мгновенное превью) — реальный пользователь
-     всегда открывает картинку вручную, эта функция не часть обычного UX */
+     всегда доходит до 90% сам, эта функция не часть обычного UX */
   function forceComplete() {
     if (completed) return;
     completed = true;
     if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
+    stopScratchInput();
+    if (onCursorHide) onCursorHide();
     if (onProgress) onProgress(100);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (onRecovered) onRecovered();
@@ -1364,10 +1395,7 @@ function corruptedMask(canvas, photoBox) {
   function destroy() {
     if (raf) cancelAnimationFrame(raf);
     if (sampleIv) clearInterval(sampleIv);
-    canvas.removeEventListener('pointerdown', downH);
-    canvas.removeEventListener('pointermove', moveH);
-    removeEventListener('pointerup', upH);
-    removeEventListener('pointercancel', upH);
+    stopScratchInput();
   }
 
   return { prepare, startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => completed };
@@ -1385,6 +1413,7 @@ const SC11 = {
     const photo = el('img', 's11-photo');
     photo.alt = C.s11.photo.title;
     photo.src = C.s11.photo.src;
+    photo.draggable = false;
     const canvas = el('canvas', 's11-canvas');
     const cursor = el('div', 's11-cursor');
 
@@ -1403,14 +1432,18 @@ const SC11 = {
     final.appendChild(el('div', null, C.s11.final[1]));
     final.appendChild(el('div', 'file', C.s11.final[2]));
 
-    stage.append(photo, canvas, cursor, hint, progress, verified, final);
-    root.append(intro, stage);
+    /* intro — дочерний overlay именно у .s11-stage (а не сосед в .scene),
+       чтобы position:absolute считался от уже отступающего от HUD/рамки
+       stage, а не от внешнего края всей сцены */
+    stage.append(photo, canvas, cursor, intro, hint, progress, verified, final);
+    root.append(stage);
 
     /* курсор-индикатор двигается вместе с указателем внутри области.
        Делим на масштаб #stage (fit() уменьшает всю сцену под окно) —
        иначе translate() из screen-координат сам ещё раз домножится на
        тот же transform и кружок «убежит» от настоящего курсора */
     stage.addEventListener('pointermove', e => {
+      if (mask.isRecovered()) return;
       const r = stage.getBoundingClientRect();
       const scale = r.width / stage.offsetWidth;
       cursor.style.transform = 'translate(' + ((e.clientX - r.left) / scale) + 'px,' + ((e.clientY - r.top) / scale) + 'px)';
@@ -1451,7 +1484,8 @@ const SC11 = {
         if (pct >= 10) r.hint.classList.add('hide');
       },
       onVerifying() { r.hint.classList.add('hide'); show(r.verified); },
-      onRecovered() { r.verified.classList.remove('in'); recovered = true; }
+      onRecovered() { r.verified.classList.remove('in'); recovered = true; },
+      onCursorHide() { r.cursor.classList.remove('on'); }
     });
     if (E.instant) r.mask.forceComplete();
     while (!recovered) { await ctx.wait(150); }

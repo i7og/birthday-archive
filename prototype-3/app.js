@@ -197,6 +197,12 @@ function initControls() {
   $('#win').addEventListener('click', e => { if (e.target.id === 'win') closeWin(); });
   $('#winClose').addEventListener('click', closeWin);
 
+  /* нигде в презентации нет настоящего drag-and-drop UX — только клики
+     по фото (открывают окно, см. photoSlot/openWin). draggable=false и
+     CSS user-drag уже стоят на самих <img>, это подстраховка на случай,
+     если браузер всё равно предложит перетащить картинку */
+  addEventListener('dragstart', e => { if (e.target instanceof HTMLImageElement) e.preventDefault(); });
+
   addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeWin(); $('#menu').classList.remove('on'); return; }
     const digit = e.code.match(/^(?:Digit|Numpad)([0-9])$/);
