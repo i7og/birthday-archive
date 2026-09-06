@@ -1010,7 +1010,8 @@ const SC10 = {
    КАДР 11 — повреждённый сектор: Matrix-fill → scratch-восстановление
    ========================================================================= */
 const S11_GLYPHS = ['0', '1', '#', '%', '/', '\\', '>', '<', '*', '+', '-', '_', '▓', '▒', '░', '@', '$'];
-const S11_WORDS = ['ERROR', 'SYS', 'REC', '0x41'];
+const S11_WORDS = ['SYS', 'REC', 'MEM', 'DATA', 'SECTOR', 'BUFFER', 'READ', '0x41'];
+const S11_WARN = ['ERR', 'FAIL', 'CORRUPT', 'LOCK'];
 
 /* Один canvas на две роли по очереди: сначала «Matrix-заливка» повреждённого
    слоя (накопительная, ничего не тает), потом та же поверхность становится
@@ -1026,7 +1027,7 @@ function corruptedMask(canvas, photoBox) {
   const ctx = canvas.getContext('2d');
 
   let W = 0, H = 0, cols = 0, rows = 0, filled = null, filledCount = 0, drops = [];
-  let raf = null, fillStartTs = 0, lastTs = 0, fillDone = false;
+  let raf = null, fillStartTs = 0, lastTs = 0, fillDone = false, prepared = false;
   /* прогресс считаем не по альфа-пикселям (это отдельная сетка «стёртых»
      ячеек, обновляемая вместе со scratch-мазками) — дёшево и не зависит
      от того, насколько плотно нарисованы символы в конкретной ячейке */
@@ -1034,41 +1035,87 @@ function corruptedMask(canvas, photoBox) {
   let pointerId = null, lastPt = null, sampleIv = null, dirty = false, recovered = false;
   const brushR = matchMedia('(pointer:coarse)').matches ? 85 : 70;
 
+  /* три уровня «данных»: обычный фоновый мусор (тёмный, большинство ячеек),
+     редкие читаемые системные слова (ярко-зелёные) и совсем редкие
+     warning-токены (приглушённый янтарный — старый терминал, не modern-red) */
   function glyph() {
-    if (Math.random() < 0.04) return S11_WORDS[(Math.random() * S11_WORDS.length) | 0];
-    return S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0];
+    const r = Math.random();
+    if (r < 0.01) return { text: S11_WARN[(Math.random() * S11_WARN.length) | 0], tier: 'warn' };
+    if (r < 0.07) return { text: S11_WORDS[(Math.random() * S11_WORDS.length) | 0], tier: 'sys' };
+    return { text: S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0], tier: 'noise' };
   }
   /* ячейка ВСЕГДА красится непрозрачным фоном ПЕРЕД символом — так canvas
      остаётся сплошным «видеобуфером» (чёрный + зелёный мусор), и фото под
      ним нигде не может проступить между знаками, пока пользователь не
-     сотрёт этот кусок сам (destination-out в eraseAt) */
+     сотрёт этот кусок сам (destination-out в eraseAt). Слова НЕ получают
+     cellSize как maxWidth в fillText — иначе они сжимаются в одну ячейку
+     и становятся нечитаемыми. Возвращает, сколько ДОПОЛНИТЕЛЬНЫХ ячеек
+     справа слово визуально заняло (0 для одиночного символа) — вызывающий
+     код обязан «застолбить» их в filled[], иначе когда до той соседней
+     ячейки дойдёт её собственная колонка, она перекрасит свой фон и
+     обрежет слово (наблюдалось как "SECTOR" → "SEC") */
   function drawGlyph(c, row, bright) {
     const x = c * cellSize, y = row * cellSize;
     ctx.fillStyle = S11_BG;
     ctx.fillRect(x, y, cellSize, cellSize);
-    ctx.font = (cellSize * (Math.random() < 0.06 ? 0.42 : 0.82)) + 'px "Roboto Mono", monospace';
     ctx.textBaseline = 'top';
     if (bright) {
+      /* голова падающей колонки — всегда одиночный «мусорный» символ,
+         не тянет за собой систему застолбливания соседних ячеек;
+         на следующем кадре эта же ячейка в любом случае перерисуется
+         финальным (тусклым) глифом через finalizeCell */
+      ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
       ctx.shadowColor = 'rgba(160,255,200,.85)'; ctx.shadowBlur = 7;
       ctx.fillStyle = '#eafff2';
-    } else {
+      ctx.fillText(S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0], x + 2, y + 1, cellSize);
       ctx.shadowBlur = 0;
-      ctx.fillStyle = Math.random() < 0.55 ? '#2f9d5c' : '#1c6b3d';
+      return 0;
     }
-    ctx.fillText(glyph(), x + 2, y + 1, cellSize);
+    const g = glyph();
+    let claim = 0;
+    if (g.tier === 'warn' || g.tier === 'sys') {
+      ctx.font = (cellSize * 0.5) + 'px "Roboto Mono", monospace';
+      if (g.tier === 'warn') { ctx.shadowColor = 'rgba(214,168,75,.6)'; ctx.shadowBlur = 4; ctx.fillStyle = '#d6a84b'; }
+      else { ctx.shadowColor = 'rgba(100,255,160,.7)'; ctx.shadowBlur = 5; ctx.fillStyle = '#9dffc0'; }
+      ctx.fillText(g.text, x + 2, y + 2);
+      const overflow = (2 + ctx.measureText(g.text).width) - cellSize;
+      if (overflow > 0) claim = Math.ceil(overflow / cellSize);
+    } else {
+      ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = ['#14532d', '#176b38', '#1d7a42'][(Math.random() * 3) | 0];
+      ctx.fillText(g.text, x + 2, y + 1, cellSize);
+    }
     ctx.shadowBlur = 0;
+    return claim;
   }
   function finalizeCell(c, row) {
     if (row < 0 || row >= rows) return;
     const idx = row * cols + c;
-    if (!filled[idx]) { filled[idx] = 1; filledCount++; }
-    drawGlyph(c, row, false);
+    /* колонки респавнятся и могут проходить по одной и той же ячейке
+       несколько раз за время заливки — рисуем глиф только один раз,
+       иначе повторные переигровки glyph() задирают долю «осмысленных»
+       слов далеко за заданный процент (0.93^N перерисовок) */
+    if (filled[idx]) return;
+    filled[idx] = 1; filledCount++;
+    const claim = drawGlyph(c, row, false);
+    for (let k = 1; k <= claim; k++) {
+      const cc = c + k;
+      if (cc >= cols) break;
+      const idx2 = row * cols + cc;
+      if (!filled[idx2]) { filled[idx2] = 1; filledCount++; }
+    }
   }
   function spawnDrop(c, initial) {
     drops[c] = { y: initial ? -Math.random() * rows * 0.6 : -(2 + Math.random() * rows * 0.5),
                  speed: 9 + Math.random() * 15, headRow: -1 };
   }
-  function resize() {
+  /* prepare() отделена от запуска самой Matrix-анимации: она должна
+     выполниться ДО печати intro-текста (первым же кадром сцены), чтобы
+     фото не было видно вообще ни на один frame — а не только с момента,
+     когда запускается падение символов */
+  function prepare() {
+    if (prepared) return;
     /* offsetWidth/Height — размер в собственных CSS-пикселях элемента, БЕЗ
        учёта масштабирующего transform на #stage (в отличие от
        getBoundingClientRect). Если взять здесь уже отмасштабированный
@@ -1087,13 +1134,16 @@ function corruptedMask(canvas, photoBox) {
     ctx.fillStyle = S11_BG;
     ctx.fillRect(0, 0, W, H);
     for (let c = 0; c < cols; c++) spawnDrop(c, true);
+    prepared = true;
   }
   function finishFill() {
     for (let c = 0; c < cols; c++) { const d = drops[c]; if (d && d.headRow >= 0) finalizeCell(c, d.headRow); }
+    /* идём по сетке строго слева направо по каждой строке — finalizeCell
+       сама застолбит ячейки, занятые словом, так что переход к ним в этом
+       же проходе просто пропустит их, не перерисовывая поверх */
     for (let idx = 0; idx < filled.length; idx++) {
-      if (!filled[idx]) { const c = idx % cols, rr = (idx / cols) | 0; filled[idx] = 1; drawGlyph(c, rr, false); }
+      if (!filled[idx]) finalizeCell(idx % cols, (idx / cols) | 0);
     }
-    filledCount = filled.length;
     fillDone = true;
     if (raf) cancelAnimationFrame(raf);
     raf = null;
@@ -1118,8 +1168,8 @@ function corruptedMask(canvas, photoBox) {
     raf = requestAnimationFrame(frame);
   }
 
-  function startFill() { resize(); lastTs = 0; raf = requestAnimationFrame(frame); }
-  function fillInstant() { resize(); finishFill(); }
+  function startFill() { prepare(); lastTs = 0; raf = requestAnimationFrame(frame); }
+  function fillInstant() { prepare(); finishFill(); }
 
   function ptFromEvent(e) {
     /* getBoundingClientRect уже учитывает масштабирующий transform на
@@ -1235,7 +1285,7 @@ function corruptedMask(canvas, photoBox) {
     removeEventListener('pointercancel', upH);
   }
 
-  return { startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => recovered };
+  return { prepare, startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => recovered };
 }
 
 const SC11 = {
@@ -1287,6 +1337,11 @@ const SC11 = {
     return { introNodes, stage, photo, canvas, cursor, hint, progress, progressVal, verified, final, mask };
   },
   async play(ctx, r) {
+    /* закрываем фото непрозрачным чёрным ДО печати intro-текста — так
+       пользователь не видит его вообще ни на один кадр, ещё до того как
+       начнут падать первые символы Matrix-заливки */
+    r.mask.prepare();
+
     for (let i = 0; i < C.s11.intro.length; i++) {
       await type(ctx, r.introNodes[i], C.s11.intro[i], 60);
       await ctx.wait(i === 0 ? 380 : 700);

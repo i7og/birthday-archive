@@ -636,8 +636,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 
 /* ============================ SCENE 11 ============================ */
 
+/* min-height зарезервирован под ОБЕ строки intro уже заполненными (измерено:
+   ~50px) — иначе пустые .ln рушатся почти до 0 и .s11-stage (flex:1 1 auto)
+   сначала занимает лишнее место, а потом заметно сжимается по мере печати */
 .s11-intro{ display:flex; flex-direction:column; gap:6px; font-size:1.05em; letter-spacing:.1em;
-            color:var(--g-mid); margin-bottom:16px; flex:0 0 auto; }
+            color:var(--g-mid); margin-bottom:16px; flex:0 0 auto; min-height:50px; }
 .s11-intro .ln{ white-space:pre-wrap; }
 
 .s11-stage{
@@ -648,6 +651,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s11-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
 .s11-canvas{
   position:absolute; inset:0; width:100%; height:100%;
+  /* фон здесь НЕ ставим: canvas со своим background-color закрашивал бы
+     им же и стёртые (destination-out) дыры — фото под ними переставало
+     быть видно. Непрозрачность обеспечивает только сам bitmap (prepare()
+     заливает его целиком до первого кадра), а фон .s11-stage под фото —
+     достаточная страховка на случай, если сам img ещё не отрисован */
   cursor:none; touch-action:none; -webkit-user-select:none; user-select:none;
 }
 .s11-canvas.clearing{ transition:opacity .6s ease; opacity:0; }
