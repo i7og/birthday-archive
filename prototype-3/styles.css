@@ -376,7 +376,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
    бы крайних людей по бокам (группа занимает почти всю ширину кадра), поэтому
    вместо cover используем контролируемый zoom поверх contain: рамка заполняется
    почти полностью, но с запасом по краям, чтобы ни одно лицо не обрезалось */
-.s5-colleagues .photo img{ transform:scale(1.1); }
+.s5-colleagues .photo img{ transform:scale(1.28); }
 .s5-block .cap{ font-size:1.12em; letter-spacing:.06em; color:var(--g-mid); margin-top:7px; text-align:left; white-space:nowrap; }
 /* без матричного CRT-тона — здесь фото должны читаться чисто */
 .s5-block .photo.has-img::before{ content:none; }
@@ -519,7 +519,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 
 /* ============================ SCENE 8 ============================ */
 
-.s8-grid{ display:grid; grid-template-columns:1fr 480px 1fr; gap:18px; flex:1 1 auto; align-content:start; }
+.s8-grid{ display:grid; grid-template-columns:1fr 560px 1fr; gap:18px; flex:1 1 auto; align-content:start; }
 .s8{ padding-top:52px; padding-bottom:6px; }
 .tcard{ border:1px solid var(--line); background:var(--panel); padding:10px 13px; overflow:hidden; }
 .tcard .h{ display:flex; gap:8px; align-items:center; font-size:.92em; font-weight:700; color:var(--g-bright); letter-spacing:.06em; }
@@ -530,7 +530,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
    aspect-ratio исходника (1152×2048 = 9:16), поэтому кадрирование не
    меняется и человек с архитектурой не обрезаются */
 .s8-photo{
-  width:300px; aspect-ratio:9 / 16;
+  width:380px; aspect-ratio:9 / 16;
   box-shadow:0 0 26px rgba(78,240,138,.16);
 }
 /* очень лёгкая интеграция в дизайн — тёмно-зелёный fade и едва заметные
@@ -824,6 +824,10 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .mapbox svg .outline.draw{ transition:stroke-dashoffset 2s ease; stroke-dashoffset:0; }
 /* coastline + river — открытые линии, не замкнутый полигон, без заливки */
 .mapbox svg .outline--lines{ fill:none; stroke-width:2; }
+/* фото готовой карты вместо отрисованного контура — вместо «рисования»
+   линии просто мягко проявляется целиком */
+.mapbox svg .outline-photo{ opacity:0; transition:opacity 2s ease; }
+.mapbox svg .outline-photo.draw{ opacity:1; }
 
 /* --- кадр 7 --- */
 .s7-stack{ display:flex; flex-direction:column; gap:14px; }
@@ -842,9 +846,9 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
    квадратные, поэтому обычный cover обрезал бы людей по краям. Как и для
    COLLEAGUES, вместо cover — контролируемый zoom поверх contain, подобранный
    отдельно под композицию каждого фото так, чтобы все лица остались в кадре */
-.s5-collage > div:nth-child(1) img{ transform:scale(1.8); }   /* трое обнимаются в центре кадра */
-.s5-collage > div:nth-child(2) img{ transform:scale(1.1); }   /* группа почти во весь кадр — минимальный запас */
-.s5-collage > div:last-child:nth-child(3) img{ transform:scale(1.2); } /* большая группа, лица не доходят до краёв */
+.s5-collage > div:nth-child(1) img{ transform:scale(2); }     /* трое обнимаются в центре кадра */
+.s5-collage > div:nth-child(2) img{ transform:scale(1.18); }  /* группа почти во весь кадр — минимальный запас */
+.s5-collage > div:last-child:nth-child(3) img{ transform:scale(1.24); } /* большая группа, лица не доходят до краёв */
 
 /* --- кадр 10 --- */
 .s10-arch .ph{ margin-top:16px; font-size:.82em; letter-spacing:.18em; color:var(--g-dim); }

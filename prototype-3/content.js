@@ -173,17 +173,21 @@ window.CONTENT = {
     title: "KNOWN LOCATIONS",
     region: "ANDALUCÍA, SPAIN",
     status: ["EXPLORATION STATUS: ACTIVE", "BEYOND THE USUAL ROUTES"],
-    /* порядок появления строго по ТЗ */
+    /* порядок появления строго по ТЗ. Координаты подобраны под фоновую
+       фотографию карты (photos/s6-andalucia-map.png, вставлена как
+       image в тот же viewBox 0 0 1000 600) — MÁLAGA совмещена с готовым
+       пином на самой фотографии, остальные точки расставлены по тем же
+       относительным направлениям и расстояниям от неё, что и раньше */
     pins: [
-      { name:"NERJA",        x:612, y:428 },
-      { name:"ÚBEDA",        x:689, y:182 },
-      { name:"RONDA",        x:400, y:400, side:"left" },
-      { name:"GRANADA",      x:653, y:330 },
-      { name:"CÓRDOBA",      x:472, y:203 },
-      { name:"BENALMÁDENA",  x:487, y:437, side:"left" },
-      { name:"TORREMOLINOS", x:515, y:458, hot:true }
+      { name:"NERJA",        x:566.7, y:347.8 },
+      { name:"ÚBEDA",        x:647.6, y:60 },
+      { name:"RONDA",        x:343.9, y:311.7, side:"left" },
+      { name:"GRANADA",      x:609.9, y:221.6 },
+      { name:"CÓRDOBA",      x:419.6, y:78 },
+      { name:"BENALMÁDENA",  x:435.3, y:359.4, side:"left" },
+      { name:"TORREMOLINOS", x:464.8, y:386.4, hot:true }
     ],
-    malaga: { name:"MÁLAGA", x:534, y:386 },
+    malaga: { name:"MÁLAGA", x:484.75, y:293.7 },
     zoomTitle: "MÁLAGA",
     /* реальные координаты (WGS84, OpenStreetMap/Nominatim), спроецированные в
        этот viewBox тем же способом, что и MALAGA_OUTLINE (cos-коррекция по
