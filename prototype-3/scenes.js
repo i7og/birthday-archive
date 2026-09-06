@@ -1010,8 +1010,19 @@ const SC10 = {
    КАДР 11 — повреждённый сектор: Matrix-fill → scratch-восстановление
    ========================================================================= */
 const S11_GLYPHS = ['0', '1', '#', '%', '/', '\\', '>', '<', '*', '+', '-', '_', '▓', '▒', '░', '@', '$'];
-const S11_WORDS = ['SYS', 'REC', 'MEM', 'DATA', 'SECTOR', 'BUFFER', 'READ', '0x41'];
+const S11_WORDS = ['SYS', 'REC', 'MEM', 'DATA', 'SECTOR', 'BUFFER', 'READ', '0x41', 'RESTORE'];
 const S11_WARN = ['ERR', 'FAIL', 'CORRUPT', 'LOCK'];
+/* целевая доля заполнения экрана «осевшими» символами в момент t (сек) —
+   приблизительная, самокорректирующаяся кривая (см. trySettle) */
+const S11_CURVE = [[0, 0], [0.8, .15], [1.6, .35], [2.4, .60], [3.2, .80], [4.0, .95]];
+function s11CurveDensity(t) {
+  if (t <= 0) return 0;
+  for (let i = 1; i < S11_CURVE.length; i++) {
+    const [t0, d0] = S11_CURVE[i - 1], [t1, d1] = S11_CURVE[i];
+    if (t <= t1) return d0 + (d1 - d0) * (t - t0) / (t1 - t0);
+  }
+  return S11_CURVE[S11_CURVE.length - 1][1];
+}
 
 /* Один canvas на две роли по очереди: сначала «Matrix-заливка» повреждённого
    слоя (накопительная, ничего не тает), потом та же поверхность становится
@@ -1026,8 +1037,9 @@ function corruptedMask(canvas, photoBox) {
   const cellSize = 20;
   const ctx = canvas.getContext('2d');
 
-  let W = 0, H = 0, cols = 0, rows = 0, filled = null, filledCount = 0, drops = [];
+  let W = 0, H = 0, cols = 0, rows = 0, drops = [];
   let raf = null, fillStartTs = 0, lastTs = 0, fillDone = false, prepared = false;
+  let windingDown = false, windDownStart = 0;
   /* прогресс считаем не по альфа-пикселям (это отдельная сетка «стёртых»
      ячеек, обновляемая вместе со scratch-мазками) — дёшево и не зависит
      от того, насколько плотно нарисованы символы в конкретной ячейке */
@@ -1035,76 +1047,81 @@ function corruptedMask(canvas, photoBox) {
   let pointerId = null, lastPt = null, sampleIv = null, dirty = false, recovered = false;
   const brushR = matchMedia('(pointer:coarse)').matches ? 85 : 70;
 
+  /* ДВА слоя в одном canvas:
+     1. settled[] — «осевшие» символы: раз нарисованный такой символ
+        хранится здесь как готовый рецепт отрисовки и перерисовывается
+        КАЖДЫЙ кадр заново (не тает, не стирается полупрозрачным
+        оверлеем — тот приём стирал бы уже осевшие данные, поэтому тут
+        честная память ячеек вместо трюка с rgba-фейдом);
+     2. drops[] — активные падающие колонки (голова + короткий хвост),
+        рисуются поверх settled[] каждый кадр заново, без накопления.
+     claimed[] — служебная сетка: ячейки, занятые «хвостом» многобуквенного
+     слова/токена в settled[]; они ничего не рисуют сами (родительская
+     ячейка слова уже нарисовала туда текст), но помечены занятыми, чтобы
+     туда никогда не поместили случайный шумовой символ поверх слова. */
+  let settled = null, claimed = null, drawList = [], settledCount = 0;
+
+  function placeNoise(c, row) {
+    const idx = row * cols + c;
+    settled[idx] = {
+      ch: S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0],
+      color: ['#2f7a49', '#3b9858'][(Math.random() * 2) | 0],
+      shadowColor: null, shadowBlur: 0,
+      font: (cellSize * 0.82) + 'px "Roboto Mono", monospace', dy: 1
+    };
+    drawList.push(idx); settledCount++;
+  }
+  /* «читаемый» токен (системное слово или warning) может занимать несколько
+     ячеек по ширине — cellSize НЕ используется как maxWidth в fillText,
+     иначе слово сжимается и становится нечитаемым (см. комментарий ниже
+     про заброшенный вариант с обрезкой). Если ячейки под слово справа уже
+     заняты (settled или claimed), молча откатываемся на одиночный шумовой
+     символ вместо слова — иначе слово легло бы поверх чужих данных. */
+  function placeToken(c, row, text, tier) {
+    const fontPx = cellSize * 0.58;
+    ctx.font = fontPx + 'px "Roboto Mono", monospace';
+    const overflow = (2 + ctx.measureText(text).width) - cellSize;
+    const span = 1 + (overflow > 0 ? Math.ceil(overflow / cellSize) : 0);
+    if (c + span > cols) { placeNoise(c, row); return; }
+    for (let k = 0; k < span; k++) {
+      const idx2 = row * cols + c + k;
+      if (settled[idx2] != null || claimed[idx2]) { placeNoise(c, row); return; }
+    }
+    const idx = row * cols + c;
+    const warn = tier === 'warn';
+    settled[idx] = {
+      ch: text,
+      color: warn ? '#d6a84b' : '#9dffc0',
+      shadowColor: warn ? 'rgba(214,168,75,.6)' : 'rgba(100,255,160,.7)',
+      shadowBlur: warn ? 4 : 5,
+      font: fontPx + 'px "Roboto Mono", monospace', dy: 2
+    };
+    drawList.push(idx); settledCount++;
+    for (let k = 1; k < span; k++) { claimed[row * cols + c + k] = 1; settledCount++; }
+  }
   /* три уровня «данных»: обычный фоновый мусор (тёмный, большинство ячеек),
      редкие читаемые системные слова (ярко-зелёные) и совсем редкие
      warning-токены (приглушённый янтарный — старый терминал, не modern-red) */
-  function glyph() {
+  function settleCell(c, row) {
+    const idx = row * cols + c;
+    if (settled[idx] != null || claimed[idx]) return;
     const r = Math.random();
-    if (r < 0.01) return { text: S11_WARN[(Math.random() * S11_WARN.length) | 0], tier: 'warn' };
-    if (r < 0.07) return { text: S11_WORDS[(Math.random() * S11_WORDS.length) | 0], tier: 'sys' };
-    return { text: S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0], tier: 'noise' };
+    if (r < 0.01) placeToken(c, row, S11_WARN[(Math.random() * S11_WARN.length) | 0], 'warn');
+    else if (r < 0.07) placeToken(c, row, S11_WORDS[(Math.random() * S11_WORDS.length) | 0], 'sys');
+    else placeNoise(c, row);
   }
-  /* ячейка ВСЕГДА красится непрозрачным фоном ПЕРЕД символом — так canvas
-     остаётся сплошным «видеобуфером» (чёрный + зелёный мусор), и фото под
-     ним нигде не может проступить между знаками, пока пользователь не
-     сотрёт этот кусок сам (destination-out в eraseAt). Слова НЕ получают
-     cellSize как maxWidth в fillText — иначе они сжимаются в одну ячейку
-     и становятся нечитаемыми. Возвращает, сколько ДОПОЛНИТЕЛЬНЫХ ячеек
-     справа слово визуально заняло (0 для одиночного символа) — вызывающий
-     код обязан «застолбить» их в filled[], иначе когда до той соседней
-     ячейки дойдёт её собственная колонка, она перекрасит свой фон и
-     обрежет слово (наблюдалось как "SECTOR" → "SEC") */
-  function drawGlyph(c, row, bright) {
-    const x = c * cellSize, y = row * cellSize;
-    ctx.fillStyle = S11_BG;
-    ctx.fillRect(x, y, cellSize, cellSize);
-    ctx.textBaseline = 'top';
-    if (bright) {
-      /* голова падающей колонки — всегда одиночный «мусорный» символ,
-         не тянет за собой систему застолбливания соседних ячеек;
-         на следующем кадре эта же ячейка в любом случае перерисуется
-         финальным (тусклым) глифом через finalizeCell */
-      ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
-      ctx.shadowColor = 'rgba(160,255,200,.85)'; ctx.shadowBlur = 7;
-      ctx.fillStyle = '#eafff2';
-      ctx.fillText(S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0], x + 2, y + 1, cellSize);
-      ctx.shadowBlur = 0;
-      return 0;
-    }
-    const g = glyph();
-    let claim = 0;
-    if (g.tier === 'warn' || g.tier === 'sys') {
-      ctx.font = (cellSize * 0.5) + 'px "Roboto Mono", monospace';
-      if (g.tier === 'warn') { ctx.shadowColor = 'rgba(214,168,75,.6)'; ctx.shadowBlur = 4; ctx.fillStyle = '#d6a84b'; }
-      else { ctx.shadowColor = 'rgba(100,255,160,.7)'; ctx.shadowBlur = 5; ctx.fillStyle = '#9dffc0'; }
-      ctx.fillText(g.text, x + 2, y + 2);
-      const overflow = (2 + ctx.measureText(g.text).width) - cellSize;
-      if (overflow > 0) claim = Math.ceil(overflow / cellSize);
-    } else {
-      ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = ['#14532d', '#176b38', '#1d7a42'][(Math.random() * 3) | 0];
-      ctx.fillText(g.text, x + 2, y + 1, cellSize);
-    }
-    ctx.shadowBlur = 0;
-    return claim;
-  }
-  function finalizeCell(c, row) {
+  /* решает, «осядет» ли символ в ячейке (c,row), мимо которой только что
+     прошла падающая колонка. Вероятность подстраивается под целевую
+     плотность из S11_CURVE: если текущая плотность отстаёт от кривой —
+     оседаем почти всегда, если обогнали — почти никогда, отсюда
+     самокорректирующееся (пусть и приблизительное) приближение к кривой */
+  function trySettle(c, row, elapsed) {
     if (row < 0 || row >= rows) return;
     const idx = row * cols + c;
-    /* колонки респавнятся и могут проходить по одной и той же ячейке
-       несколько раз за время заливки — рисуем глиф только один раз,
-       иначе повторные переигровки glyph() задирают долю «осмысленных»
-       слов далеко за заданный процент (0.93^N перерисовок) */
-    if (filled[idx]) return;
-    filled[idx] = 1; filledCount++;
-    const claim = drawGlyph(c, row, false);
-    for (let k = 1; k <= claim; k++) {
-      const cc = c + k;
-      if (cc >= cols) break;
-      const idx2 = row * cols + cc;
-      if (!filled[idx2]) { filled[idx2] = 1; filledCount++; }
-    }
+    if (settled[idx] != null || claimed[idx]) return;
+    const target = s11CurveDensity(elapsed) * cols * rows;
+    const p = settledCount < target ? 0.85 : 0.05;
+    if (Math.random() < p) settleCell(c, row);
   }
   function spawnDrop(c, initial) {
     drops[c] = { y: initial ? -Math.random() * rows * 0.6 : -(2 + Math.random() * rows * 0.5),
@@ -1127,49 +1144,136 @@ function corruptedMask(canvas, photoBox) {
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cols = Math.max(1, Math.ceil(W / cellSize)); rows = Math.max(1, Math.ceil(H / cellSize));
-    filled = new Uint8Array(cols * rows); filledCount = 0; drops = [];
+    settled = new Array(cols * rows).fill(null); claimed = new Uint8Array(cols * rows);
+    drawList = []; settledCount = 0; drops = [];
     erased = new Uint8Array(cols * rows); erasedCount = 0;
+    fillDone = false; windingDown = false;
     /* сразу целиком закрашиваем непрозрачным фоном — фото не видно ни на
        миг, даже до того как упадёт первый символ Matrix-заливки */
     ctx.fillStyle = S11_BG;
     ctx.fillRect(0, 0, W, H);
-    for (let c = 0; c < cols; c++) spawnDrop(c, true);
     prepared = true;
   }
-  function finishFill() {
-    for (let c = 0; c < cols; c++) { const d = drops[c]; if (d && d.headRow >= 0) finalizeCell(c, d.headRow); }
-    /* идём по сетке строго слева направо по каждой строке — finalizeCell
-       сама застолбит ячейки, занятые словом, так что переход к ним в этом
-       же проходе просто пропустит их, не перерисовывая поверх */
-    for (let idx = 0; idx < filled.length; idx++) {
-      if (!filled[idx]) finalizeCell(idx % cols, (idx / cols) | 0);
+  /* КАЖДЫЙ кадр перерисовываем всё заново в строгом порядке:
+     непрозрачная чёрная база → осевшие символы → падающие колонки.
+     Так фото гарантированно скрыто на любом кадре (шаг 1 перекрывает
+     весь canvas целиком), а «осевшие» символы не тают, потому что их
+     рецепты живут в settled[] и перерисовываются, а не накапливаются
+     через прозрачность. */
+  function render() {
+    ctx.fillStyle = S11_BG;
+    ctx.fillRect(0, 0, W, H);
+    ctx.textBaseline = 'top';
+    for (let i = 0; i < drawList.length; i++) {
+      const idx = drawList[i];
+      const d = settled[idx];
+      if (!d) continue;
+      const row = (idx / cols) | 0, c = idx % cols;
+      ctx.font = d.font;
+      if (d.shadowColor) { ctx.shadowColor = d.shadowColor; ctx.shadowBlur = d.shadowBlur; }
+      else ctx.shadowBlur = 0;
+      ctx.fillStyle = d.color;
+      ctx.fillText(d.ch, c * cellSize + 2, row * cellSize + d.dy);
     }
+    ctx.shadowBlur = 0;
+    /* падающий слой — голова + короткий тающий хвост, целиком по мотивам
+       selector.js (тот же яркий/тусклый цвет), но БЕЗ его приёма с
+       rgba-заливкой всего канваса — здесь трейл лишь визуальный и не
+       должен ничего стирать из settled[] */
+    for (let c = 0; c < cols; c++) {
+      const d = drops[c]; if (!d) continue;
+      for (let k = 0; k < 3; k++) {
+        const row = d.headRow - k;
+        if (row < 0 || row >= rows) continue;
+        ctx.globalAlpha = k === 0 ? 1 : (k === 1 ? 0.5 : 0.22);
+        ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
+        if (k === 0) { ctx.shadowColor = 'rgba(160,255,200,.85)'; ctx.shadowBlur = 7; ctx.fillStyle = '#d5ffe0'; }
+        else { ctx.shadowBlur = 0; ctx.fillStyle = '#3b9858'; }
+        ctx.fillText(S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0], c * cellSize + 2, row * cellSize + 1);
+      }
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  }
+  function finishFill() {
     fillDone = true;
     if (raf) cancelAnimationFrame(raf);
     raf = null;
   }
   function frame(ts) {
     if (!lastTs) { lastTs = ts; fillStartTs = ts; }
+    const elapsed = (ts - fillStartTs) / 1000;
     const dt = Math.min(0.05, (ts - lastTs) / 1000);
     lastTs = ts;
+
+    /* приближаемся к ~90% плотности или затянули дольше разумного —
+       начинаем плавный «выход»: колонки становятся реже и не
+       респавнятся, вместо резкой остановки всего разом */
+    if (!windingDown && (settledCount / (cols * rows) >= 0.90 || elapsed > 6)) {
+      windingDown = true; windDownStart = ts;
+    }
+
     for (let c = 0; c < cols; c++) {
       const d = drops[c]; if (!d) continue;
       d.y += d.speed * dt;
       const newRow = Math.floor(d.y);
       if (newRow !== d.headRow) {
         const start = Math.max(d.headRow, 0);
-        for (let rr = start; rr < newRow; rr++) finalizeCell(c, rr);
+        for (let rr = start; rr < newRow; rr++) trySettle(c, rr, elapsed);
         d.headRow = newRow;
-        if (newRow >= 0 && newRow < rows) drawGlyph(c, newRow, true);
       }
-      if (d.y - 2 > rows) spawnDrop(c, false);
+      if (d.y - 2 > rows) {
+        if (windingDown) drops[c] = null;
+        else spawnDrop(c, false);
+      }
     }
-    if (filledCount / (cols * rows) >= 0.95 || ts - fillStartTs > 3400) { finishFill(); return; }
+
+    render();
+
+    if (windingDown) {
+      /* колонки должны становиться реже и полностью остановиться в
+         пределах ~300-500мс от начала выхода, а не «когда повезёт» —
+         поэтому вероятность обрыва растёт по мере приближения к
+         жёсткому пределу в 320мс, на котором гарантированно гасим
+         всё оставшееся разом */
+      const windElapsed = ts - windDownStart;
+      if (windElapsed > 320) {
+        for (let c = 0; c < cols; c++) drops[c] = null;
+      } else {
+        const p = 0.05 + (windElapsed / 320) * 0.3;
+        for (let c = 0; c < cols; c++) { if (drops[c] && Math.random() < p) drops[c] = null; }
+      }
+      const stillActive = drops.some(d => d);
+      if (!stillActive && windElapsed > 340) { finishFill(); return; }
+    }
     raf = requestAnimationFrame(frame);
   }
 
-  function startFill() { prepare(); lastTs = 0; raf = requestAnimationFrame(frame); }
-  function fillInstant() { prepare(); finishFill(); }
+  function startFill() {
+    prepare(); lastTs = 0; fillStartTs = 0; windingDown = false; drops = [];
+    for (let c = 0; c < cols; c++) spawnDrop(c, true);
+    raf = requestAnimationFrame(frame);
+  }
+  /* мгновенная заливка (тестовый режим E.instant) — без анимации падения
+     сразу «осаживаем» ~90% ячеек в случайном порядке той же логикой
+     settleCell(), что и обычное падение, и рисуем один статичный кадр */
+  function fillInstant() {
+    prepare();
+    const total = cols * rows;
+    const target = Math.floor(total * 0.90);
+    const order = Array.from({ length: total }, (_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      const t = order[i]; order[i] = order[j]; order[j] = t;
+    }
+    for (let k = 0; k < order.length && settledCount < target; k++) {
+      const idx = order[k];
+      if (settled[idx] != null || claimed[idx]) continue;
+      settleCell(idx % cols, (idx / cols) | 0);
+    }
+    drops = [];
+    render();
+    finishFill();
+  }
 
   function ptFromEvent(e) {
     /* getBoundingClientRect уже учитывает масштабирующий transform на
