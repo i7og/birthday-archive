@@ -1025,7 +1025,7 @@ const SC10 = {
 };
 
 /* =========================================================================
-   КАДР 11 — повреждённый сектор: Matrix-fill → scratch-восстановление
+   КАДР 11 — повреждённый сектор: Matrix-fill → дешифровка ячеек по клеткам
    ========================================================================= */
 /* только Matrix-глифы — визуальный язык стартового Matrix-экрана
    (selector.js), без единого читаемого английского слова: фон не должен
@@ -1050,13 +1050,15 @@ function s11CurveDensity(t) {
 
 /* Один canvas на две роли по очереди: сначала «Matrix-заливка» повреждённого
    слоя (накопительная, ничего не тает), потом та же поверхность становится
-   scratch-маской (destination-out по мере движения курсора/пальца).
-   photoBox — элемент, по размеру которого подгоняется canvas. */
+   сеткой ячеек-«блоков памяти», которые пользователь дешифрует, водя
+   курсором рядом (clearRect по ячейке после короткой decrypt-анимации,
+   не стирание кистью). photoBox — элемент, по размеру которого подгоняется
+   canvas; photoImg — сам <img>, нужен для geometry object-fit:contain. */
 /* непрозрачный «видеобуфер» повреждённого сектора — тот же тёмный тон,
    что и фон .s11-stage, чтобы под ASCII не было видно ни кусочка фото */
 const S11_BG = '#020704';
 
-function corruptedMask(canvas, photoBox) {
+function corruptedMask(canvas, photoBox, photoImg) {
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   const cellSize = 20;
   const ctx = canvas.getContext('2d');
@@ -1064,12 +1066,16 @@ function corruptedMask(canvas, photoBox) {
   let W = 0, H = 0, cols = 0, rows = 0, drops = [];
   let raf = null, fillStartTs = 0, lastTs = 0, fillDone = false, prepared = false;
   let windingDown = false, windDownStart = 0;
-  /* прогресс считаем не по альфа-пикселям (это отдельная сетка «стёртых»
-     ячеек, обновляемая вместе со scratch-мазками) — дёшево и не зависит
-     от того, насколько плотно нарисованы символы в конкретной ячейке */
-  let erased = null, erasedCount = 0;
-  let pointerId = null, lastPt = null, sampleIv = null, dirty = false, completed = false;
-  const brushR = matchMedia('(pointer:coarse)').matches ? 85 : 70;
+  /* интерактивная фаза — «дешифровка» ячеек, а не стирание кистью:
+     cellStatus: 0=locked 1=pending/decrypting (лежит в active[]) 2=revealed.
+     validCell — какие ячейки вообще относятся к реальному изображению (не
+     letterbox/pillarbox от object-fit:contain) и поэтому участвуют в
+     progress/интеракции; totalValidCells — их количество (знаменатель %). */
+  let cellStatus = null, validCell = null, totalValidCells = 0, revealedCount = 0;
+  let active = [], raf2 = null;
+  let pointerId = null, lastPt = null, completed = false, recoveredFired = false;
+  const radius = matchMedia('(pointer:coarse)').matches ? 85 : 70;
+  const DECRYPT_MS = 230;
 
   /* ДВА слоя в одном canvas:
      1. settled[] — «осевшие» символы: раз нарисованный такой символ
@@ -1130,7 +1136,8 @@ function corruptedMask(canvas, photoBox) {
     cols = Math.max(1, Math.ceil(W / cellSize)); rows = Math.max(1, Math.ceil(H / cellSize));
     settled = new Array(cols * rows).fill(null);
     drawList = []; settledCount = 0; drops = [];
-    erased = new Uint8Array(cols * rows); erasedCount = 0;
+    cellStatus = null; active = []; completed = false; recoveredFired = false;
+    revealedCount = 0; totalValidCells = 0;
     fillDone = false; windingDown = false;
     /* сразу целиком закрашиваем непрозрачным фоном — фото не видно ни на
        миг, даже до того как упадёт первый символ Matrix-заливки */
@@ -1259,146 +1266,233 @@ function corruptedMask(canvas, photoBox) {
 
   function ptFromEvent(e) {
     /* getBoundingClientRect уже учитывает масштабирующий transform на
-       #stage (fit() подгоняет 1600x900 под размер окна) — а вся отрисовка
-       (eraseAt/markErased) ведётся в СОБСТВЕННЫХ CSS-пикселях canvas (W,H
-       из resize()). Делим на текущий коэффициент масштаба, иначе кисть
-       будет промахиваться мимо курсора всюду, кроме родного 1600x900 */
+       #stage (fit() подгоняет 1600x900 под размер окна) — а вся сеточная
+       логика ведётся в СОБСТВЕННЫХ CSS-пикселях canvas (W,H из prepare()).
+       Делим на текущий коэффициент масштаба, иначе триггер ячеек будет
+       промахиваться мимо курсора всюду, кроме родного 1600x900 */
     const r = canvas.getBoundingClientRect();
     const scale = r.width / W;
     return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale };
   }
-  /* отмечает ячейки сетки, попавшие под кисть в точке (cx,cy), как стёртые —
-     дешёвая приблизительная замена честному подсчёту прозрачных пикселей */
-  function markErased(cx, cy) {
-    const c0 = Math.max(0, Math.floor((cx - brushR) / cellSize));
-    const c1 = Math.min(cols - 1, Math.floor((cx + brushR) / cellSize));
-    const r0 = Math.max(0, Math.floor((cy - brushR) / cellSize));
-    const r1 = Math.min(rows - 1, Math.floor((cy + brushR) / cellSize));
-    const rad2 = brushR * brushR;
-    for (let rr = r0; rr <= r1; rr++) {
-      for (let cc = c0; cc <= c1; cc++) {
-        const idx = rr * cols + cc;
-        if (erased[idx]) continue;
-        const dx = cc * cellSize + cellSize / 2 - cx, dy = rr * cellSize + cellSize / 2 - cy;
-        if (dx * dx + dy * dy <= rad2) { erased[idx] = 1; erasedCount++; }
+  /* какие ячейки вообще относятся к реальному изображению — считаем их
+     по геометрии object-fit:contain (фото могло не заполнить весь stage,
+     оставив чёрные letterbox/pillarbox поля); эти поля никогда не входят
+     в totalValidCells и никогда не декодируются (ничего интересного под
+     ними всё равно нет — под ними просто фон .s11-stage) */
+  function computeValidRegion() {
+    validCell = new Uint8Array(cols * rows);
+    totalValidCells = 0;
+    const iw = photoImg.naturalWidth, ih = photoImg.naturalHeight;
+    if (!iw || !ih) { validCell.fill(1); totalValidCells = cols * rows; return; }
+    const scale = Math.min(W / iw, H / ih);
+    const rw = iw * scale, rh = ih * scale;
+    const rx = (W - rw) / 2, ry = (H - rh) / 2;
+    for (let row = 0; row < rows; row++) {
+      for (let c = 0; c < cols; c++) {
+        const cx = c * cellSize + cellSize / 2, cy = row * cellSize + cellSize / 2;
+        if (cx >= rx && cx <= rx + rw && cy >= ry && cy <= ry + rh) {
+          validCell[row * cols + c] = 1; totalValidCells++;
+        }
       }
     }
+    if (!totalValidCells) { validCell.fill(1); totalValidCells = cols * rows; }
   }
-  function eraseAt(pt) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.filter = 'blur(6px)';
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = brushR * 2;
-    ctx.beginPath();
-    if (lastPt) { ctx.moveTo(lastPt.x, lastPt.y); ctx.lineTo(pt.x, pt.y); }
-    else { ctx.moveTo(pt.x, pt.y); ctx.lineTo(pt.x + 0.01, pt.y); }
-    ctx.stroke();
-    ctx.filter = 'none';
-    for (let i = 0; i < 3; i++) {
-      if (Math.random() < 0.3) {
-        const ang = Math.random() * Math.PI * 2, dist = brushR * (0.55 + Math.random() * 0.55);
-        const s = 4 + Math.random() * 9;
-        ctx.fillRect(pt.x + Math.cos(ang) * dist - s / 2, pt.y + Math.sin(ang) * dist - s / 2, s, s);
-      }
-    }
-    ctx.restore();
-    /* отмечаем стёртые ячейки вдоль всего отрезка мазка, не только в конечной точке */
-    if (lastPt) {
-      const steps = Math.max(1, Math.ceil(Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y) / (cellSize * 0.75)));
-      for (let i = 0; i <= steps; i++) markErased(lastPt.x + (pt.x - lastPt.x) * i / steps, lastPt.y + (pt.y - lastPt.y) * i / steps);
-    } else {
-      markErased(pt.x, pt.y);
-    }
-    lastPt = pt; dirty = true;
+  function progressPct() {
+    return totalValidCells ? Math.min(100, Math.round((revealedCount / totalValidCells) * 100)) : 0;
   }
-  function progressPct() { return Math.min(100, Math.round((erasedCount / (cols * rows)) * 100)); }
 
-  /* 0-89% — целиком ручной scratch. На пороге запускается один раз
-     короткая авто-дочистка остатка (см. complete()) — не мгновенный
-     clearRect, который выглядел бы слишком резко, а короткая анимация. */
+  function paintCellBase(c, row) {
+    ctx.fillStyle = S11_BG;
+    ctx.fillRect(c * cellSize, row * cellSize, cellSize, cellSize);
+  }
+  /* стадии дешифровки одной ячейки (см. DECRYPT_MS): 0-80мс — быстрый
+     фликер случайных глифов чуть ярче обычного; 80-180мс — устойчиво
+     яркий глиф; 180-230мс — почти белая вспышка перед раскрытием. Каждый
+     кадр перекрашиваем ТОЛЬКО эту ячейку (не весь canvas) — так дешевле
+     и не трогает уже открытые/остальные запертые ячейки. */
+  function paintDecryptFrame(cell, age) {
+    paintCellBase(cell.col, cell.row);
+    ctx.textBaseline = 'top';
+    ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
+    const glyphCh = S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0];
+    let color;
+    if (age < 80) { color = '#5fd98a'; ctx.shadowBlur = 0; }
+    else if (age < 180) { color = '#9dffc0'; ctx.shadowColor = 'rgba(157,255,192,.65)'; ctx.shadowBlur = 6; }
+    else { color = '#effff4'; ctx.shadowColor = 'rgba(239,255,244,.9)'; ctx.shadowBlur = 10; }
+    ctx.fillStyle = color;
+    ctx.fillText(glyphCh, cell.col * cellSize + 2, cell.row * cellSize + 1);
+    ctx.shadowBlur = 0;
+  }
+  function revealCellNow(c, row) {
+    const idx = row * cols + c;
+    if (cellStatus[idx] === 2) return;
+    cellStatus[idx] = 2;
+    ctx.clearRect(c * cellSize, row * cellSize, cellSize, cellSize);
+    if (validCell[idx]) revealedCount++;
+  }
+
+  /* 0-89% — целиком ручная дешифровка. На пороге запускается один раз
+     цепная реакция по оставшимся запертым ячейкам (см. maybeAutoComplete) —
+     не мгновенный clearRect, а такая же decrypt-анимация волной. */
   const AUTO_CLEAN_THRESHOLD = 90;
 
   let onProgress = null, onRecovered = null, onVerifying = null, onCursorHide = null;
+
+  /* общий rAF-цикл интерактивной фазы — крутится, только пока в active[]
+     что-то есть (после fill-фазы отдельный raf для падения уже остановлен) */
+  function interactiveFrame(ts) {
+    for (let i = active.length - 1; i >= 0; i--) {
+      const cell = active[i];
+      if (cell.state === 'pending') {
+        if (ts >= cell.activateAt) { cell.state = 'decrypting'; cell.decryptStart = ts; }
+        else continue;
+      }
+      const age = ts - cell.decryptStart;
+      if (age >= DECRYPT_MS) {
+        revealCellNow(cell.col, cell.row);
+        active.splice(i, 1);
+        if (onProgress) onProgress(progressPct());
+        maybeAutoComplete();
+        maybeFinishRecovery();
+      } else {
+        paintDecryptFrame(cell, age);
+      }
+    }
+    raf2 = active.length ? requestAnimationFrame(interactiveFrame) : null;
+  }
+  function ensureInteractiveLoop() { if (!raf2) raf2 = requestAnimationFrame(interactiveFrame); }
+
+  /* находит запертые валидные ячейки в radius от точки (cx,cy) и планирует
+     их дешифровку с небольшой задержкой по расстоянию (волна) + джиттер —
+     так эффект выглядит как расходящаяся от курсора реакция, а не «все
+     ячейки разом» */
+  function triggerNear(cx, cy) {
+    const c0 = Math.max(0, Math.floor((cx - radius) / cellSize));
+    const c1 = Math.min(cols - 1, Math.floor((cx + radius) / cellSize));
+    const r0 = Math.max(0, Math.floor((cy - radius) / cellSize));
+    const r1 = Math.min(rows - 1, Math.floor((cy + radius) / cellSize));
+    const rad2 = radius * radius;
+    const now = performance.now();
+    for (let rr = r0; rr <= r1; rr++) {
+      for (let cc = c0; cc <= c1; cc++) {
+        const idx = rr * cols + cc;
+        if (cellStatus[idx] !== 0 || !validCell[idx]) continue;
+        const dx = cc * cellSize + cellSize / 2 - cx, dy = rr * cellSize + cellSize / 2 - cy;
+        const dist2 = dx * dx + dy * dy;
+        if (dist2 > rad2) continue;
+        const dist = Math.sqrt(dist2);
+        const bandDelay = dist < 20 ? 0 : dist < 40 ? 40 : 80;
+        cellStatus[idx] = 1;
+        active.push({ col: cc, row: rr, state: 'pending', activateAt: now + bandDelay + Math.random() * 60 });
+      }
+    }
+    ensureInteractiveLoop();
+  }
   function enableScratch(cbs) {
     onProgress = cbs.onProgress; onRecovered = cbs.onRecovered; onVerifying = cbs.onVerifying;
     onCursorHide = cbs.onCursorHide;
+    computeValidRegion();
+    cellStatus = new Uint8Array(cols * rows);
+    revealedCount = 0; completed = false; recoveredFired = false; active = [];
     canvas.addEventListener('pointerdown', downH);
     canvas.addEventListener('pointermove', moveH);
     addEventListener('pointerup', upH);
     addEventListener('pointercancel', upH);
-    sampleIv = setInterval(() => {
-      if (!dirty || completed) return;
-      dirty = false;
-      const pct = progressPct();
-      if (onProgress) onProgress(pct);
-      if (pct >= AUTO_CLEAN_THRESHOLD) complete();
-    }, 180);
   }
   function stopScratchInput() {
     canvas.removeEventListener('pointerdown', downH);
     canvas.removeEventListener('pointermove', moveH);
     removeEventListener('pointerup', upH);
     removeEventListener('pointercancel', upH);
-    pointerId = null; lastPt = null;
+    pointerId = null;
   }
   function downH(e) {
     if (completed) return;
     pointerId = e.pointerId;
     canvas.setPointerCapture(pointerId);
-    lastPt = null;
-    eraseAt(ptFromEvent(e));
-    if (onProgress) onProgress(progressPct());
+    const pt = ptFromEvent(e);
+    lastPt = pt;
+    triggerNear(pt.x, pt.y);
   }
   function moveH(e) {
     if (completed || e.pointerId !== pointerId) return;
     if (e.buttons === 0) return;
-    eraseAt(ptFromEvent(e));
+    const pt = ptFromEvent(e);
+    lastPt = pt;
+    triggerNear(pt.x, pt.y);
   }
-  function upH() { pointerId = null; lastPt = null; }
-  /* срабатывает РОВНО один раз (см. guard completed=true в самом начале —
-     ни interval, ни ещё один pointer-эвент не смогут вызвать её повторно):
-     1. прекращает ручной scratch и прячет курсор-индикатор
-     2. показывает статус «проверка»
-     3. короткий glitch, затем плавное угасание остатка маски (~250+620мс,
-        не мгновенно) — и только ПОСЛЕ него прогресс прыгает на 100% и
-        показывается финальный экран */
-  function complete() {
-    if (completed) return;
+  function upH() { pointerId = null; }
+  /* срабатывает РОВНО один раз (guard completed=true в начале — ни ещё
+     одна открытая ячейка, ни новый pointer-эвент не вызовут её повторно):
+     останавливает ручной ввод, прячет курсор, показывает «проверка» и
+     запускает цепную дешифровку ВСЕХ оставшихся запертых валидных ячеек —
+     волной от последней известной точки курсора (или центра, если
+     взаимодействия ещё не было). onRecovered придёт позже, из
+     maybeFinishRecovery(), когда волна на самом деле дорисуется. */
+  function maybeAutoComplete() {
+    if (completed || progressPct() < AUTO_CLEAN_THRESHOLD) return;
     completed = true;
-    if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
     stopScratchInput();
     if (onCursorHide) onCursorHide();
     if (onVerifying) onVerifying();
     Snd.play('scan');
     canvas.classList.add('glitch');
-    setTimeout(() => {
-      canvas.classList.add('clearing');
-      setTimeout(() => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (onProgress) onProgress(100);
-        if (onRecovered) onRecovered();
-      }, 620);
-    }, 220);
+    const originX = lastPt ? lastPt.x : W / 2, originY = lastPt ? lastPt.y : H / 2;
+    const now = performance.now();
+    let maxDist = 1;
+    const remaining = [];
+    for (let idx = 0; idx < cols * rows; idx++) {
+      if (cellStatus[idx] !== 0 || !validCell[idx]) continue;
+      const rr = (idx / cols) | 0, cc = idx % cols;
+      const dx = cc * cellSize + cellSize / 2 - originX, dy = rr * cellSize + cellSize / 2 - originY;
+      const dist = Math.hypot(dx, dy);
+      remaining.push({ col: cc, row: rr, dist });
+      if (dist > maxDist) maxDist = dist;
+    }
+    const WAVE_MS = 700; /* + собственный DECRYPT_MS хвост каждой ячейки — итог укладывается в желаемые 600-1200мс */
+    remaining.forEach(cellInfo => {
+      const idx = cellInfo.row * cols + cellInfo.col;
+      cellStatus[idx] = 1;
+      const delay = (cellInfo.dist / maxDist) * WAVE_MS + Math.random() * 100;
+      active.push({ col: cellInfo.col, row: cellInfo.row, state: 'pending', activateAt: now + delay });
+    });
+    ensureInteractiveLoop();
+    maybeFinishRecovery();
+  }
+  function maybeFinishRecovery() {
+    if (!completed || recoveredFired || active.length) return;
+    recoveredFired = true;
+    if (onRecovered) onRecovered();
   }
   /* только для E.instant (мгновенное превью) — реальный пользователь
      всегда доходит до 90% сам, эта функция не часть обычного UX */
   function forceComplete() {
     if (completed) return;
     completed = true;
-    if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
     stopScratchInput();
     if (onCursorHide) onCursorHide();
+    active = []; raf2 = null;
+    if (!cellStatus) { computeValidRegion(); cellStatus = new Uint8Array(cols * rows); }
+    for (let idx = 0; idx < cols * rows; idx++) {
+      if (!validCell[idx] || cellStatus[idx] === 2) continue;
+      cellStatus[idx] = 2;
+      ctx.clearRect((idx % cols) * cellSize, ((idx / cols) | 0) * cellSize, cellSize, cellSize);
+    }
+    revealedCount = totalValidCells;
     if (onProgress) onProgress(100);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    recoveredFired = true;
     if (onRecovered) onRecovered();
   }
   function destroy() {
     if (raf) cancelAnimationFrame(raf);
-    if (sampleIv) clearInterval(sampleIv);
+    if (raf2) cancelAnimationFrame(raf2);
     stopScratchInput();
   }
 
-  return { prepare, startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => completed };
+  return {
+    prepare, startFill, fillInstant, enableScratch, forceComplete, destroy,
+    isFillDone: () => fillDone, isRecovered: () => completed, isDecrypting: () => active.length > 0
+  };
 }
 
 const SC11 = {
@@ -1416,6 +1510,7 @@ const SC11 = {
     photo.draggable = false;
     const canvas = el('canvas', 's11-canvas');
     const cursor = el('div', 's11-cursor');
+    cursor.append(el('i', 'tl'), el('i', 'tr'), el('i', 'bl'), el('i', 'br'), el('span', 'dot'));
 
     const hint = el('div', 's11-hint rv');
     C.s11.hint.forEach(l => hint.appendChild(el('div', null, l)));
@@ -1448,10 +1543,11 @@ const SC11 = {
       const scale = r.width / stage.offsetWidth;
       cursor.style.transform = 'translate(' + ((e.clientX - r.left) / scale) + 'px,' + ((e.clientY - r.top) / scale) + 'px)';
       cursor.classList.add('on');
+      cursor.classList.toggle('active', mask.isDecrypting());
     });
     stage.addEventListener('pointerleave', () => cursor.classList.remove('on'));
 
-    const mask = corruptedMask(canvas, stage);
+    const mask = corruptedMask(canvas, stage, photo);
     return { introNodes, stage, photo, canvas, cursor, hint, progress, progressVal, verified, final, mask };
   },
   async play(ctx, r) {
@@ -1475,17 +1571,21 @@ const SC11 = {
     show(r.hint);
     show(r.progress);
 
-    let recovered = false;
+    let recovered = false, labelChanged = false;
     r.mask.enableScratch({
       onProgress(pct) {
         r.progressVal.textContent = pad(pct) + '%';
-        /* не прятать подсказку от первого же случайного движения — только
-           когда пользователь реально начал царапать заметную площадь */
+        /* вторая строка подсказки меняется, как только пользователь
+           реально начал дешифровку, а не при первом же случайном движении */
+        if (pct > 0 && !labelChanged) {
+          labelChanged = true;
+          r.hint.lastElementChild.textContent = C.s11.hintActive;
+        }
         if (pct >= 10) r.hint.classList.add('hide');
       },
       onVerifying() { r.hint.classList.add('hide'); show(r.verified); },
       onRecovered() { r.verified.classList.remove('in'); recovered = true; },
-      onCursorHide() { r.cursor.classList.remove('on'); }
+      onCursorHide() { r.cursor.classList.remove('on', 'active'); }
     });
     if (E.instant) r.mask.forceComplete();
     while (!recovered) { await ctx.wait(150); }
