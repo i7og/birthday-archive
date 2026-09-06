@@ -339,8 +339,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .mcard ul li{ white-space:pre-wrap; }
 .mcard .m-quote{ font-size:.68em; font-style:italic; color:var(--g-dim); margin-top:auto; }
 .mcard .m-sub{ margin-top:5px; border-top:1px dashed var(--line-soft); padding-top:5px; }
-.mcard .m-photo{ width:100%; height:100px; margin-top:auto; flex:0 0 auto; border:0; }
+.mcard .m-photo{ width:100%; height:100px; margin-top:auto; flex:0 0 auto; border:0; background:none; }
 .mcard .m-photo::after{ display:none; }
+/* без зелёной CRT-подложки — у декабрьского/мартовского фото прозрачный
+   PNG, сквозь него была видна зелёная плашка и скан-линии base-стиля .photo */
+.mcard .m-photo.has-img::before{ content:none; }
 .mcard .m-photo img{ object-fit:contain; background:transparent; }
 .mcard--photo-only{ padding:0; background:#020704; }
 .mcard--photo-only .m-photo{ width:100%; height:100%; margin:0; border:0; }
