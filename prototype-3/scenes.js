@@ -568,30 +568,14 @@ const SC6 = {
   }
 };
 
-/* нижний HUD-футер слайда 7 — рисуется кодом, без внешних картинок:
+/* нижний HUD-футер слайда 7:
    [ RICK & MORTY VISUAL ] — [ DATA STREAM / HUD ] — [ LEGACY STATUS ] */
 function rmVisual() {
   const box = el('div', 's7-rm rv');
-  const svg = ns('svg', { viewBox: '0 0 140 100' });
-  /* Rick — слева: растрёпанные волосы, моно-бровь, прищур, халат */
-  svg.appendChild(ns('path', { d: 'M20,22 L24,7 L28,20 L32,5 L36,19 L40,4 L44,19 L48,6 L52,22' }));
-  svg.appendChild(ns('circle', { cx: 36, cy: 28, r: 14 }));
-  svg.appendChild(ns('path', { d: 'M27,26 L45,26', 'stroke-width': 2.4 }));
-  svg.appendChild(ns('path', { d: 'M30,33 L34,33' }));
-  svg.appendChild(ns('path', { d: 'M38,33 L42,33' }));
-  svg.appendChild(ns('path', { d: 'M33,39 L39,39' }));
-  svg.appendChild(ns('path', { d: 'M16,42 L10,52 L10,88 L62,88 L62,52 L56,42 Z' }));
-  svg.appendChild(ns('path', { d: 'M36,42 L36,88' }));
-  /* Morty — справа: круглая голова, нервная улыбка, футболка */
-  svg.appendChild(ns('circle', { cx: 100, cy: 34, r: 15 }));
-  svg.appendChild(ns('circle', { cx: 86, cy: 36, r: 3.4 }));
-  svg.appendChild(ns('circle', { cx: 114, cy: 36, r: 3.4 }));
-  svg.appendChild(ns('path', { d: 'M89,24 Q94,14 101,18' }));
-  svg.appendChild(ns('circle', { cx: 94, cy: 32, r: 1.6, fill: 'currentColor' }));
-  svg.appendChild(ns('circle', { cx: 106, cy: 32, r: 1.6, fill: 'currentColor' }));
-  svg.appendChild(ns('path', { d: 'M92,43 Q100,49 108,43' }));
-  svg.appendChild(ns('path', { d: 'M88,52 L80,60 L80,90 L120,90 L120,60 L112,52 Z' }));
-  box.appendChild(svg);
+  const img = el('img');
+  img.src = 'photos/s7-rickandmorty.png';
+  img.alt = 'Rick & Morty';
+  box.appendChild(img);
   return box;
 }
 function streamLine() {
