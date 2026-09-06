@@ -997,7 +997,6 @@ const SC10 = {
 
     show(r.hbd);
     r._stopFw = fireworks(r.fw);
-    Snd.play('win');
     await ctx.wait(900);
     await showSeq(ctx, r.wishNodes, 950);
     await ctx.wait(700);
@@ -1007,4 +1006,287 @@ const SC10 = {
   stop(r) { if (r && r._stopFw) { r._stopFw(); r._stopFw = null; } }
 };
 
-const SCENES = [SC1, SC2, SC3, SC4, SC5, SC6, SC7, SC8, SC9, SC10];
+/* =========================================================================
+   КАДР 11 — повреждённый сектор: Matrix-fill → scratch-восстановление
+   ========================================================================= */
+const S11_GLYPHS = ['0', '1', '#', '%', '/', '\\', '>', '<', '*', '+', '-', '_', '▓', '▒', '░', '@', '$'];
+const S11_WORDS = ['ERROR', 'SYS', 'REC', '0x41'];
+
+/* Один canvas на две роли по очереди: сначала «Matrix-заливка» повреждённого
+   слоя (накопительная, ничего не тает), потом та же поверхность становится
+   scratch-маской (destination-out по мере движения курсора/пальца).
+   photoBox — элемент, по размеру которого подгоняется canvas. */
+function corruptedMask(canvas, photoBox) {
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const cellSize = 20;
+  const ctx = canvas.getContext('2d');
+
+  let W = 0, H = 0, cols = 0, rows = 0, filled = null, filledCount = 0, drops = [];
+  let raf = null, fillStartTs = 0, lastTs = 0, fillDone = false;
+  /* прогресс считаем не по альфа-пикселям (ASCII-глифы сами по себе разрежены,
+     между символами и так много прозрачных промежутков — по пикселям процент
+     сразу оказался бы завышен ещё до того, как пользователь что-то стёр),
+     а по отдельной сетке «стёртых» ячеек — так же дёшево, но честно */
+  let erased = null, erasedCount = 0;
+  let pointerId = null, lastPt = null, sampleIv = null, dirty = false, recovered = false;
+  const brushR = matchMedia('(pointer:coarse)').matches ? 65 : 45;
+
+  function glyph() {
+    if (Math.random() < 0.04) return S11_WORDS[(Math.random() * S11_WORDS.length) | 0];
+    return S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0];
+  }
+  function drawGlyph(c, row, bright) {
+    const x = c * cellSize, y = row * cellSize;
+    ctx.clearRect(x, y, cellSize, cellSize);
+    ctx.font = (cellSize * (Math.random() < 0.06 ? 0.42 : 0.82)) + 'px "Roboto Mono", monospace';
+    ctx.textBaseline = 'top';
+    if (bright) {
+      ctx.shadowColor = 'rgba(160,255,200,.85)'; ctx.shadowBlur = 7;
+      ctx.fillStyle = '#eafff2';
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = Math.random() < 0.55 ? '#2f9d5c' : '#1c6b3d';
+    }
+    ctx.fillText(glyph(), x + 2, y + 1, cellSize);
+    ctx.shadowBlur = 0;
+  }
+  function finalizeCell(c, row) {
+    if (row < 0 || row >= rows) return;
+    const idx = row * cols + c;
+    if (!filled[idx]) { filled[idx] = 1; filledCount++; }
+    drawGlyph(c, row, false);
+  }
+  function spawnDrop(c, initial) {
+    drops[c] = { y: initial ? -Math.random() * rows * 0.6 : -(2 + Math.random() * rows * 0.5),
+                 speed: 9 + Math.random() * 15, headRow: -1 };
+  }
+  function resize() {
+    const r = photoBox.getBoundingClientRect();
+    W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cols = Math.max(1, Math.ceil(W / cellSize)); rows = Math.max(1, Math.ceil(H / cellSize));
+    filled = new Uint8Array(cols * rows); filledCount = 0; drops = [];
+    erased = new Uint8Array(cols * rows); erasedCount = 0;
+    for (let c = 0; c < cols; c++) spawnDrop(c, true);
+  }
+  function finishFill() {
+    for (let c = 0; c < cols; c++) { const d = drops[c]; if (d && d.headRow >= 0) finalizeCell(c, d.headRow); }
+    for (let idx = 0; idx < filled.length; idx++) {
+      if (!filled[idx]) { const c = idx % cols, rr = (idx / cols) | 0; filled[idx] = 1; drawGlyph(c, rr, false); }
+    }
+    filledCount = filled.length;
+    fillDone = true;
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
+  function frame(ts) {
+    if (!lastTs) { lastTs = ts; fillStartTs = ts; }
+    const dt = Math.min(0.05, (ts - lastTs) / 1000);
+    lastTs = ts;
+    for (let c = 0; c < cols; c++) {
+      const d = drops[c]; if (!d) continue;
+      d.y += d.speed * dt;
+      const newRow = Math.floor(d.y);
+      if (newRow !== d.headRow) {
+        const start = Math.max(d.headRow, 0);
+        for (let rr = start; rr < newRow; rr++) finalizeCell(c, rr);
+        d.headRow = newRow;
+        if (newRow >= 0 && newRow < rows) drawGlyph(c, newRow, true);
+      }
+      if (d.y - 2 > rows) spawnDrop(c, false);
+    }
+    if (filledCount / (cols * rows) >= 0.95 || ts - fillStartTs > 3400) { finishFill(); return; }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function startFill() { resize(); lastTs = 0; raf = requestAnimationFrame(frame); }
+  function fillInstant() { resize(); finishFill(); }
+
+  function ptFromEvent(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  /* отмечает ячейки сетки, попавшие под кисть в точке (cx,cy), как стёртые —
+     дешёвая приблизительная замена честному подсчёту прозрачных пикселей */
+  function markErased(cx, cy) {
+    const c0 = Math.max(0, Math.floor((cx - brushR) / cellSize));
+    const c1 = Math.min(cols - 1, Math.floor((cx + brushR) / cellSize));
+    const r0 = Math.max(0, Math.floor((cy - brushR) / cellSize));
+    const r1 = Math.min(rows - 1, Math.floor((cy + brushR) / cellSize));
+    const rad2 = brushR * brushR;
+    for (let rr = r0; rr <= r1; rr++) {
+      for (let cc = c0; cc <= c1; cc++) {
+        const idx = rr * cols + cc;
+        if (erased[idx]) continue;
+        const dx = cc * cellSize + cellSize / 2 - cx, dy = rr * cellSize + cellSize / 2 - cy;
+        if (dx * dx + dy * dy <= rad2) { erased[idx] = 1; erasedCount++; }
+      }
+    }
+  }
+  function eraseAt(pt) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.filter = 'blur(9px)';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = brushR * 2;
+    ctx.beginPath();
+    if (lastPt) { ctx.moveTo(lastPt.x, lastPt.y); ctx.lineTo(pt.x, pt.y); }
+    else { ctx.moveTo(pt.x, pt.y); ctx.lineTo(pt.x + 0.01, pt.y); }
+    ctx.stroke();
+    ctx.filter = 'none';
+    for (let i = 0; i < 3; i++) {
+      if (Math.random() < 0.3) {
+        const ang = Math.random() * Math.PI * 2, dist = brushR * (0.55 + Math.random() * 0.55);
+        const s = 4 + Math.random() * 9;
+        ctx.fillRect(pt.x + Math.cos(ang) * dist - s / 2, pt.y + Math.sin(ang) * dist - s / 2, s, s);
+      }
+    }
+    ctx.restore();
+    /* отмечаем стёртые ячейки вдоль всего отрезка мазка, не только в конечной точке */
+    if (lastPt) {
+      const steps = Math.max(1, Math.ceil(Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y) / (cellSize * 0.75)));
+      for (let i = 0; i <= steps; i++) markErased(lastPt.x + (pt.x - lastPt.x) * i / steps, lastPt.y + (pt.y - lastPt.y) * i / steps);
+    } else {
+      markErased(pt.x, pt.y);
+    }
+    lastPt = pt; dirty = true;
+  }
+  function progressPct() { return Math.min(100, Math.round((erasedCount / (cols * rows)) * 100)); }
+
+  let onProgress = null, onRecovered = null;
+  function enableScratch(cbs) {
+    onProgress = cbs.onProgress; onRecovered = cbs.onRecovered;
+    canvas.addEventListener('pointerdown', downH);
+    canvas.addEventListener('pointermove', moveH);
+    addEventListener('pointerup', upH);
+    addEventListener('pointercancel', upH);
+    sampleIv = setInterval(() => {
+      if (!dirty || recovered) return;
+      dirty = false;
+      const pct = progressPct();
+      if (onProgress) onProgress(pct);
+      if (pct >= 68) complete(pct);
+    }, 180);
+  }
+  function downH(e) {
+    if (recovered) return;
+    pointerId = e.pointerId;
+    canvas.setPointerCapture(pointerId);
+    lastPt = null;
+    eraseAt(ptFromEvent(e));
+    if (onProgress) onProgress(progressPct());
+  }
+  function moveH(e) {
+    if (recovered || e.pointerId !== pointerId) return;
+    if (e.buttons === 0) return;
+    eraseAt(ptFromEvent(e));
+  }
+  function upH() { pointerId = null; lastPt = null; }
+  function complete(pct) {
+    recovered = true;
+    if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
+    if (onProgress) onProgress(100);
+    Snd.play('scan');
+    canvas.classList.add('glitch');
+    setTimeout(() => {
+      canvas.classList.add('clearing');
+      setTimeout(() => { ctx.clearRect(0, 0, canvas.width, canvas.height); if (onRecovered) onRecovered(); }, 620);
+    }, 260);
+  }
+  function forceComplete() {
+    if (recovered) return;
+    if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
+    recovered = true;
+    if (onProgress) onProgress(100);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (onRecovered) onRecovered();
+  }
+  function destroy() {
+    if (raf) cancelAnimationFrame(raf);
+    if (sampleIv) clearInterval(sampleIv);
+    canvas.removeEventListener('pointerdown', downH);
+    canvas.removeEventListener('pointermove', moveH);
+    removeEventListener('pointerup', upH);
+    removeEventListener('pointercancel', upH);
+  }
+
+  return { startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => recovered };
+}
+
+const SC11 = {
+  hud: C.s11.boot,
+  build(root) {
+    root.className = 'scene s11';
+
+    const intro = el('div', 's11-intro');
+    const introNodes = C.s11.intro.map(() => { const d = el('div', 'ln'); intro.appendChild(d); return d; });
+
+    const stage = el('div', 's11-stage');
+    const photo = el('img', 's11-photo');
+    photo.alt = C.s11.photo.title;
+    photo.src = C.s11.photo.src;
+    const canvas = el('canvas', 's11-canvas');
+    const cursor = el('div', 's11-cursor');
+
+    const hint = el('div', 's11-hint rv');
+    C.s11.hint.forEach(l => hint.appendChild(el('div', null, l)));
+
+    const progress = el('div', 's11-progress rv');
+    progress.appendChild(el('span', 'lbl', C.s11.progressLabel + ':'));
+    const progressVal = el('span', 'val', '00%');
+    progress.appendChild(progressVal);
+
+    const final = el('div', 's11-final');
+    final.appendChild(el('div', 't', C.s11.final[0]));
+    final.appendChild(el('div', null, C.s11.final[1]));
+    final.appendChild(el('div', 'file', C.s11.final[2]));
+
+    stage.append(photo, canvas, cursor, hint, progress, final);
+    root.append(intro, stage);
+
+    /* курсор-индикатор двигается вместе с указателем внутри области */
+    stage.addEventListener('pointermove', e => {
+      const r = stage.getBoundingClientRect();
+      cursor.style.transform = 'translate(' + (e.clientX - r.left) + 'px,' + (e.clientY - r.top) + 'px)';
+      cursor.classList.add('on');
+    });
+    stage.addEventListener('pointerleave', () => cursor.classList.remove('on'));
+
+    const mask = corruptedMask(canvas, stage);
+    return { introNodes, stage, photo, canvas, cursor, hint, progress, progressVal, final, mask };
+  },
+  async play(ctx, r) {
+    for (let i = 0; i < C.s11.intro.length; i++) {
+      await type(ctx, r.introNodes[i], C.s11.intro[i], 60);
+      await ctx.wait(i === 0 ? 380 : 700);
+    }
+
+    if (E.instant) r.mask.fillInstant();
+    else {
+      r.mask.startFill();
+      while (!r.mask.isFillDone()) { await ctx.wait(120); }
+    }
+    await ctx.wait(400);
+
+    show(r.hint);
+    show(r.progress);
+
+    let recovered = false;
+    r.mask.enableScratch({
+      onProgress(pct) {
+        r.progressVal.textContent = pad(pct) + '%';
+        if (pct > 4) r.hint.classList.add('hide');
+      },
+      onRecovered() { recovered = true; }
+    });
+    if (E.instant) r.mask.forceComplete();
+    while (!recovered) { await ctx.wait(150); }
+
+    show(r.final);
+    await ctx.wait(2200);
+  },
+  stop(r) { if (r && r.mask) r.mask.destroy(); }
+};
+
+const SCENES = [SC1, SC2, SC3, SC4, SC5, SC6, SC7, SC8, SC9, SC10, SC11];
