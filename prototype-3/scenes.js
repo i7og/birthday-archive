@@ -1016,6 +1016,10 @@ const S11_WORDS = ['ERROR', 'SYS', 'REC', '0x41'];
    слоя (накопительная, ничего не тает), потом та же поверхность становится
    scratch-маской (destination-out по мере движения курсора/пальца).
    photoBox — элемент, по размеру которого подгоняется canvas. */
+/* непрозрачный «видеобуфер» повреждённого сектора — тот же тёмный тон,
+   что и фон .s11-stage, чтобы под ASCII не было видно ни кусочка фото */
+const S11_BG = '#020704';
+
 function corruptedMask(canvas, photoBox) {
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   const cellSize = 20;
@@ -1023,21 +1027,25 @@ function corruptedMask(canvas, photoBox) {
 
   let W = 0, H = 0, cols = 0, rows = 0, filled = null, filledCount = 0, drops = [];
   let raf = null, fillStartTs = 0, lastTs = 0, fillDone = false;
-  /* прогресс считаем не по альфа-пикселям (ASCII-глифы сами по себе разрежены,
-     между символами и так много прозрачных промежутков — по пикселям процент
-     сразу оказался бы завышен ещё до того, как пользователь что-то стёр),
-     а по отдельной сетке «стёртых» ячеек — так же дёшево, но честно */
+  /* прогресс считаем не по альфа-пикселям (это отдельная сетка «стёртых»
+     ячеек, обновляемая вместе со scratch-мазками) — дёшево и не зависит
+     от того, насколько плотно нарисованы символы в конкретной ячейке */
   let erased = null, erasedCount = 0;
   let pointerId = null, lastPt = null, sampleIv = null, dirty = false, recovered = false;
-  const brushR = matchMedia('(pointer:coarse)').matches ? 65 : 45;
+  const brushR = matchMedia('(pointer:coarse)').matches ? 85 : 70;
 
   function glyph() {
     if (Math.random() < 0.04) return S11_WORDS[(Math.random() * S11_WORDS.length) | 0];
     return S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0];
   }
+  /* ячейка ВСЕГДА красится непрозрачным фоном ПЕРЕД символом — так canvas
+     остаётся сплошным «видеобуфером» (чёрный + зелёный мусор), и фото под
+     ним нигде не может проступить между знаками, пока пользователь не
+     сотрёт этот кусок сам (destination-out в eraseAt) */
   function drawGlyph(c, row, bright) {
     const x = c * cellSize, y = row * cellSize;
-    ctx.clearRect(x, y, cellSize, cellSize);
+    ctx.fillStyle = S11_BG;
+    ctx.fillRect(x, y, cellSize, cellSize);
     ctx.font = (cellSize * (Math.random() < 0.06 ? 0.42 : 0.82)) + 'px "Roboto Mono", monospace';
     ctx.textBaseline = 'top';
     if (bright) {
@@ -1061,14 +1069,23 @@ function corruptedMask(canvas, photoBox) {
                  speed: 9 + Math.random() * 15, headRow: -1 };
   }
   function resize() {
-    const r = photoBox.getBoundingClientRect();
-    W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+    /* offsetWidth/Height — размер в собственных CSS-пикселях элемента, БЕЗ
+       учёта масштабирующего transform на #stage (в отличие от
+       getBoundingClientRect). Если взять здесь уже отмасштабированный
+       размер, canvas получит его как свой style.width/height и масштаб
+       применится ещё раз поверх — картинка останется видна узкой полосой
+       по краю, которую canvas не докрывает */
+    W = Math.max(1, photoBox.offsetWidth); H = Math.max(1, photoBox.offsetHeight);
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cols = Math.max(1, Math.ceil(W / cellSize)); rows = Math.max(1, Math.ceil(H / cellSize));
     filled = new Uint8Array(cols * rows); filledCount = 0; drops = [];
     erased = new Uint8Array(cols * rows); erasedCount = 0;
+    /* сразу целиком закрашиваем непрозрачным фоном — фото не видно ни на
+       миг, даже до того как упадёт первый символ Matrix-заливки */
+    ctx.fillStyle = S11_BG;
+    ctx.fillRect(0, 0, W, H);
     for (let c = 0; c < cols; c++) spawnDrop(c, true);
   }
   function finishFill() {
@@ -1105,8 +1122,14 @@ function corruptedMask(canvas, photoBox) {
   function fillInstant() { resize(); finishFill(); }
 
   function ptFromEvent(e) {
+    /* getBoundingClientRect уже учитывает масштабирующий transform на
+       #stage (fit() подгоняет 1600x900 под размер окна) — а вся отрисовка
+       (eraseAt/markErased) ведётся в СОБСТВЕННЫХ CSS-пикселях canvas (W,H
+       из resize()). Делим на текущий коэффициент масштаба, иначе кисть
+       будет промахиваться мимо курсора всюду, кроме родного 1600x900 */
     const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    const scale = r.width / W;
+    return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale };
   }
   /* отмечает ячейки сетки, попавшие под кисть в точке (cx,cy), как стёртые —
      дешёвая приблизительная замена честному подсчёту прозрачных пикселей */
@@ -1128,7 +1151,7 @@ function corruptedMask(canvas, photoBox) {
   function eraseAt(pt) {
     ctx.save();
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.filter = 'blur(9px)';
+    ctx.filter = 'blur(6px)';
     ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = brushR * 2;
     ctx.beginPath();
     if (lastPt) { ctx.moveTo(lastPt.x, lastPt.y); ctx.lineTo(pt.x, pt.y); }
@@ -1154,9 +1177,9 @@ function corruptedMask(canvas, photoBox) {
   }
   function progressPct() { return Math.min(100, Math.round((erasedCount / (cols * rows)) * 100)); }
 
-  let onProgress = null, onRecovered = null;
+  let onProgress = null, onRecovered = null, onVerifying = null;
   function enableScratch(cbs) {
-    onProgress = cbs.onProgress; onRecovered = cbs.onRecovered;
+    onProgress = cbs.onProgress; onRecovered = cbs.onRecovered; onVerifying = cbs.onVerifying;
     canvas.addEventListener('pointerdown', downH);
     canvas.addEventListener('pointermove', moveH);
     addEventListener('pointerup', upH);
@@ -1187,6 +1210,7 @@ function corruptedMask(canvas, photoBox) {
     recovered = true;
     if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
     if (onProgress) onProgress(100);
+    if (onVerifying) onVerifying();
     Snd.play('scan');
     canvas.classList.add('glitch');
     setTimeout(() => {
@@ -1237,24 +1261,30 @@ const SC11 = {
     const progressVal = el('span', 'val', '00%');
     progress.appendChild(progressVal);
 
+    const verified = el('div', 's11-hint s11-verified rv', C.s11.verified);
+
     const final = el('div', 's11-final');
     final.appendChild(el('div', 't', C.s11.final[0]));
     final.appendChild(el('div', null, C.s11.final[1]));
     final.appendChild(el('div', 'file', C.s11.final[2]));
 
-    stage.append(photo, canvas, cursor, hint, progress, final);
+    stage.append(photo, canvas, cursor, hint, progress, verified, final);
     root.append(intro, stage);
 
-    /* курсор-индикатор двигается вместе с указателем внутри области */
+    /* курсор-индикатор двигается вместе с указателем внутри области.
+       Делим на масштаб #stage (fit() уменьшает всю сцену под окно) —
+       иначе translate() из screen-координат сам ещё раз домножится на
+       тот же transform и кружок «убежит» от настоящего курсора */
     stage.addEventListener('pointermove', e => {
       const r = stage.getBoundingClientRect();
-      cursor.style.transform = 'translate(' + (e.clientX - r.left) + 'px,' + (e.clientY - r.top) + 'px)';
+      const scale = r.width / stage.offsetWidth;
+      cursor.style.transform = 'translate(' + ((e.clientX - r.left) / scale) + 'px,' + ((e.clientY - r.top) / scale) + 'px)';
       cursor.classList.add('on');
     });
     stage.addEventListener('pointerleave', () => cursor.classList.remove('on'));
 
     const mask = corruptedMask(canvas, stage);
-    return { introNodes, stage, photo, canvas, cursor, hint, progress, progressVal, final, mask };
+    return { introNodes, stage, photo, canvas, cursor, hint, progress, progressVal, verified, final, mask };
   },
   async play(ctx, r) {
     for (let i = 0; i < C.s11.intro.length; i++) {
@@ -1278,7 +1308,8 @@ const SC11 = {
         r.progressVal.textContent = pad(pct) + '%';
         if (pct > 4) r.hint.classList.add('hide');
       },
-      onRecovered() { recovered = true; }
+      onVerifying() { r.hint.classList.add('hide'); show(r.verified); },
+      onRecovered() { r.verified.classList.remove('in'); recovered = true; }
     });
     if (E.instant) r.mask.forceComplete();
     while (!recovered) { await ctx.wait(150); }

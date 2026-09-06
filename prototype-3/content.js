@@ -374,6 +374,7 @@ window.CONTENT = {
     intro: ["SYS-41 // DATA RECOVERY", "CORRUPTED SECTOR DETECTED"],
     hint: ["MANUAL RECOVERY REQUIRED", "DRAG CURSOR TO RESTORE DATA"],
     progressLabel: "RECOVERED",
+    verified: "DATA INTEGRITY VERIFIED",
     final: ["RECOVERY COMPLETE", "FILE RESTORED", "ATTACHMENT_11.JPG"],
     photo: { src: "photos/s11-dawnwalker.jpg", title: "ATTACHMENT 11" }
   },
