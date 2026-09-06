@@ -185,12 +185,17 @@ window.CONTENT = {
     ],
     malaga: { name:"MÁLAGA", x:534, y:386 },
     zoomTitle: "MÁLAGA",
+    /* реальные координаты (WGS84, OpenStreetMap/Nominatim), спроецированные в
+       этот viewBox тем же способом, что и MALAGA_OUTLINE (cos-коррекция по
+       широте, единый масштаб). Маркер стоит строго по географии; у четырёх
+       точек центральной группы (они в 300–900 м друг от друга в реальности)
+       вынесена только подпись — labelOffset — с leader line к маркеру. */
     zoomPins: [
-      { name:"BOTANICAL GARDEN", x:140, y:62  },
-      { name:"ALCAZABA",         x:250, y:158 },
-      { name:"GIBRALFARO",       x:330, y:108 },
-      { name:"PICASSO MUSEUM",   x:120, y:198 },
-      { name:"CITY CENTRE",      x:236, y:246 }
+      { name:"BOTANICAL GARDEN", x:235.2, y:61.3 },
+      { name:"ALCAZABA",         x:266.0, y:211.6, labelOffset:{dx:5.6,  dy:46.4} },
+      { name:"GIBRALFARO",       x:278.0, y:203.0, labelOffset:{dx:30.6, dy:-59.7} },
+      { name:"PICASSO MUSEUM",   x:259.2, y:209.6, labelOffset:{dx:-179.4, dy:-61.9} },
+      { name:"CITY CENTRE",      x:248.4, y:211.3, labelOffset:{dx:-247.8, dy:-8.8} }
     ],
     summary: ["TOTAL LOCATIONS: 8", "MÁLAGA SUB-LOCATIONS: 5"],
     highlight: ["TORREMOLINOS", "THE MOST VISITED LOCATION OF VERSION 41.0"]

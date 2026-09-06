@@ -452,15 +452,17 @@ const ANDALUCIA =
   'L699,413 L638,411 L577,413 L528,415 L493,434 L455,456 L417,488 L386,515 ' +
   'L348,510 L302,497 L256,470 L241,425 L226,380 L172,353 L126,344 L73,327 Z';
 
-/* настоящая граница муниципалитета Малага (OpenStreetMap/Nominatim,
-   relation 340746), упрощена и спроецирована в этот viewBox с сохранением
-   истинных пропорций (долгота скорректирована на cos широты) */
+/* настоящие береговая линия Средиземного моря и русло реки Гуадальмедина
+   в районе центра Малаги (OpenStreetMap/Overpass: way natural=coastline,
+   way waterway=river "Río Guadalmedina"), упрощены и спроецированы в этот
+   viewBox с сохранением истинных пропорций (долгота скорректирована на
+   cos широты) — это открытые линии, не замкнутый контур муниципалитета,
+   выбраны как реальный geographic anchor для zoom-карты центра города */
 const MALAGA_OUTLINE =
-  'M125.8,130.2 L134.2,198.7 L158.0,222.3 L184.3,220.2 L166.2,271.8 L173.5,282.0 L190.4,280.3 L201.0,265.4 ' +
-  'L218.2,271.3 L235.2,253.1 L264.9,215.2 L283.1,193.6 L349.2,203.6 L346.7,184.2 L359.4,176.3 L347.4,170.1 ' +
-  'L369.6,132.6 L363.8,120.9 L382.7,118.9 L373.9,110.0 L394.2,84.2 L389.6,74.3 L375.3,79.1 L372.5,54.1 ' +
-  'L344.5,51.4 L305.6,18.0 L282.1,69.0 L258.6,61.8 L239.3,73.4 L226.0,63.1 L224.9,100.5 L186.6,133.5 ' +
-  'L156.8,145.3 L148.2,133.0 L125.8,130.2 Z';
+  'M230.3,264.2 L231.2,262.9 M236.2,265.4 L238.5,262.1 M256.9,259.2 L245.9,250.1 L262.1,243.0 ' +
+  'L244.8,243.8 L272.2,220.9 L268.1,265.6 M274.2,265.2 L286.3,223.7 L331.8,207.6 M223.6,36.6 ' +
+  'L216.8,44.1 L217.9,47.5 L222.7,50.3 L223.2,53.7 L215.6,75.0 L226.5,79.1 L240.8,113.7 ' +
+  'L236.4,190.2 L238.5,214.6 L236.7,228.8 L236.8,251.8';
 
 function pinNode(p, s) {
   const k = s || 1;
@@ -475,9 +477,19 @@ function pinNode(p, s) {
   box.appendChild(ns('circle', { cx: 0, cy: -25, r: 4.5, fill: '#030d07' }));
 
   const w = p.name.length * 9.2 + 16;
-  const x = p.side === 'left' ? -(w + 16) : 16;
-  box.appendChild(ns('rect', { x: x, y: -12, width: w, height: 24 }));
-  const t = ns('text', { x: x + 8, y: 5 });
+  let x, y;
+  if (p.labelOffset) {
+    /* подпись вынесена в сторону от маркера (например, у плотной группы точек) —
+       маркер остаётся на точной географической позиции, к подписи ведёт leader line */
+    x = p.labelOffset.dx;
+    y = p.labelOffset.dy;
+    box.appendChild(ns('path', { class: 'leader', d: 'M0,-25 L' + (x + w / 2) + ',' + (y + 12) }));
+  } else {
+    x = p.side === 'left' ? -(w + 16) : 16;
+    y = -12;
+  }
+  box.appendChild(ns('rect', { x: x, y: y, width: w, height: 24 }));
+  const t = ns('text', { x: x + 8, y: y + 17 });
   t.textContent = p.name;
   box.appendChild(t);
 
@@ -510,7 +522,7 @@ const SC6 = {
     const zoom = el('div', 'mapbox mapbox--zoomin');
     zoom.appendChild(el('div', 'lbl', C.s6.zoomTitle));
     const zsvg = ns('svg', { viewBox: '0 0 520 300', preserveAspectRatio: 'xMidYMid meet' });
-    const zoutline = ns('path', { class: 'outline', d: MALAGA_OUTLINE, pathLength: 1000 });
+    const zoutline = ns('path', { class: 'outline outline--lines', d: MALAGA_OUTLINE, pathLength: 1000 });
     zsvg.appendChild(zoutline);
     const zg = ns('g');
     zsvg.appendChild(zg);
