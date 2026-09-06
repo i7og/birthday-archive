@@ -208,6 +208,10 @@ window.CONTENT = {
     opinion: "OPINION DATABASE: EXTREMELY SPECIFIC ✓",
     footnote: ["END OF LOG", "SAVING DATA", "DATA SAVED"],
     version: "version 41.0",
+    legacy: {
+      title: "LEGACY STATUS",
+      lines: ["FEATURES TRACKED: 06/06", "MEMORIES STORED: ∞", "REALITY: STILL GOOD"]
+    },
     blocks: [
       { n:"01", t:"DECISIONS 🔄", items:[
         "🐶 DOG — CONSIDERED → CANCELLED ✓",

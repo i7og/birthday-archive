@@ -571,35 +571,53 @@ const SC6 = {
   }
 };
 
-/* пиксельные декоративные «фишки» — рисуются кодом, без внешних картинок,
-   чтобы не заимствовать чужие охраняемые персонажи */
-function decorDino() {
-  const box = el('div', 's7-decoration s7-decoration--dino card');
-  const svg = ns('svg', { viewBox: '0 0 60 50' });
-  const R = [
-    [2, 22, 14, 8], [14, 20, 26, 18], [34, 12, 10, 12], [38, 4, 16, 12],
-    [52, 10, 6, 4], [18, 38, 6, 10], [18, 46, 10, 3], [28, 38, 6, 8],
-    [28, 44, 10, 3], [36, 26, 7, 3]
-  ];
-  R.forEach(r => svg.appendChild(ns('rect', { x: r[0], y: r[1], width: r[2], height: r[3], fill: 'currentColor' })));
-  svg.appendChild(ns('rect', { x: 46, y: 7, width: 3, height: 3, fill: '#030d07' }));
+/* нижний HUD-футер слайда 7 — рисуется кодом, без внешних картинок:
+   [ RICK & MORTY VISUAL ] — [ DATA STREAM / HUD ] — [ LEGACY STATUS ] */
+function rmVisual() {
+  const box = el('div', 's7-rm rv');
+  const svg = ns('svg', { viewBox: '0 0 140 100' });
+  /* Rick — слева: растрёпанные волосы, моно-бровь, прищур, халат */
+  svg.appendChild(ns('path', { d: 'M20,22 L24,7 L28,20 L32,5 L36,19 L40,4 L44,19 L48,6 L52,22' }));
+  svg.appendChild(ns('circle', { cx: 36, cy: 28, r: 14 }));
+  svg.appendChild(ns('path', { d: 'M27,26 L45,26', 'stroke-width': 2.4 }));
+  svg.appendChild(ns('path', { d: 'M30,33 L34,33' }));
+  svg.appendChild(ns('path', { d: 'M38,33 L42,33' }));
+  svg.appendChild(ns('path', { d: 'M33,39 L39,39' }));
+  svg.appendChild(ns('path', { d: 'M16,42 L10,52 L10,88 L62,88 L62,52 L56,42 Z' }));
+  svg.appendChild(ns('path', { d: 'M36,42 L36,88' }));
+  /* Morty — справа: круглая голова, нервная улыбка, футболка */
+  svg.appendChild(ns('circle', { cx: 100, cy: 34, r: 15 }));
+  svg.appendChild(ns('circle', { cx: 86, cy: 36, r: 3.4 }));
+  svg.appendChild(ns('circle', { cx: 114, cy: 36, r: 3.4 }));
+  svg.appendChild(ns('path', { d: 'M89,24 Q94,14 101,18' }));
+  svg.appendChild(ns('circle', { cx: 94, cy: 32, r: 1.6, fill: 'currentColor' }));
+  svg.appendChild(ns('circle', { cx: 106, cy: 32, r: 1.6, fill: 'currentColor' }));
+  svg.appendChild(ns('path', { d: 'M92,43 Q100,49 108,43' }));
+  svg.appendChild(ns('path', { d: 'M88,52 L80,60 L80,90 L120,90 L120,60 L112,52 Z' }));
   box.appendChild(svg);
   return box;
 }
-function decorSpider() {
-  const box = el('div', 's7-decoration s7-decoration--spider card');
-  const svg = ns('svg', { viewBox: '0 0 60 50' });
-  const legs = [
-    'M38,20 L48,14 L58,10', 'M38,23 L50,20 L60,18', 'M38,27 L50,30 L60,32', 'M38,30 L48,36 L58,42',
-    'M22,20 L12,14 L2,10',  'M22,23 L10,20 L0,18',  'M22,27 L10,30 L0,32',  'M22,30 L12,36 L2,42'
-  ];
-  legs.forEach(d => svg.appendChild(ns('path', { d, stroke: 'currentColor', 'stroke-width': 2, fill: 'none' })));
-  svg.appendChild(ns('rect', { x: 20, y: 18, width: 20, height: 15, rx: 6, fill: 'currentColor' }));
-  svg.appendChild(ns('circle', { cx: 30, cy: 14, r: 6, fill: 'currentColor' }));
-  svg.appendChild(ns('circle', { cx: 27.5, cy: 12.5, r: 1.4, fill: '#030d07' }));
-  svg.appendChild(ns('circle', { cx: 32.5, cy: 12.5, r: 1.4, fill: '#030d07' }));
-  box.appendChild(svg);
-  return box;
+function streamLine() {
+  const svg = ns('svg', { class: 's7-stream-line', viewBox: '0 0 600 12', preserveAspectRatio: 'none' });
+  svg.appendChild(ns('path', { d: 'M0,6 L600,6', pathLength: 1000 }));
+  return svg;
+}
+function streamFx() {
+  const wrap = el('div', 's7-stream-fx');
+  const wave = el('div', 's7-wave');
+  for (let i = 0; i < 26; i++) wave.appendChild(el('i'));
+  const markers = el('div', 's7-markers blocks');
+  for (let i = 0; i < 6; i++) markers.appendChild(el('b', i < 4 ? 'on' : null));
+  wrap.append(wave, markers);
+  return wrap;
+}
+function legacyPanel() {
+  const box = el('div', 's7-legacy rv');
+  const h = el('div', 's7-legacy-h', C.s7.legacy.title);
+  const rows = C.s7.legacy.lines.map(l => el('div', 's7-legacy-row rv', l));
+  const bar = makeBar('', 16, 'sm');
+  box.append(h, ...rows, bar);
+  return { box, rows, bar };
 }
 
 /* =========================================================================
@@ -623,9 +641,14 @@ const SC7 = {
       cards.push(c);
     });
 
-    const decor = el('div', 's7-decor');
-    const decorNodes = [decorDino(), decorSpider()];
-    decorNodes.forEach(n => decor.appendChild(n));
+    const rm = rmVisual();
+    const sLine = streamLine();
+    const fx = streamFx();
+    const legacy = legacyPanel();
+    const stream = el('div', 's7-stream');
+    stream.append(sLine, fx);
+    const footer = el('div', 's7-footer');
+    footer.append(rm, stream, legacy.box);
     const opinion = el('div', 's7-opinion rv', C.s7.opinion);
     cards[3].appendChild(opinion);
     const foot = el('div', 's7-foot');
@@ -633,8 +656,8 @@ const SC7 = {
     C.s7.footnote.forEach(l => note.appendChild(el('span', null, l)));
     const ver = el('div', 's7-note rv', C.s7.version);
     foot.append(note, ver);
-    root.append(H.node, H.rule, grid, decor, foot);
-    return { H, cards, decorNodes, opinion, note, ver };
+    root.append(H.node, H.rule, grid, footer, foot);
+    return { H, cards, opinion, note, ver, rm, sLine, fx, legacy };
   },
   async play(ctx, r) {
     await type(ctx, r.H.t, C.s7.title, 28); show(r.H.rule);
@@ -650,12 +673,26 @@ const SC7 = {
       await ctx.wait(750);
     }
     await ctx.wait(400);
-    for (const photo of r.decorNodes) {
-      photo.classList.add('settle');
-      await ctx.wait(500);
-    }
     show(r.opinion);
     await ctx.wait(500);
+    /* 1. HUD/data-stream линия */
+    show(r.sLine);
+    await ctx.wait(700);
+    /* 2. Rick & Morty visual */
+    show(r.rm);
+    await ctx.wait(650);
+    /* 3. waveform / digital-элементы */
+    show(r.fx);
+    await ctx.wait(700);
+    /* 4. LEGACY STATUS появляется */
+    show(r.legacy.box);
+    await ctx.wait(400);
+    /* 5. строки внутри LEGACY STATUS */
+    await showSeq(ctx, r.legacy.rows, 260);
+    await ctx.wait(300);
+    /* 6. progress bar заполняется последним */
+    await runBar(ctx, r.legacy.bar, 100, 1300);
+    await ctx.wait(400);
     show(r.note); show(r.ver);
     await ctx.wait(1600);
   }
