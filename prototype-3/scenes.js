@@ -721,16 +721,15 @@ const SC8 = {
     const cardsL = C.s8.traits.slice(0, 4).map(t => { const c = mk(t); colL.appendChild(c); return c; });
     const cardsR = C.s8.traits.slice(4).map(t => { const c = mk(t); colR.appendChild(c); return c; });
 
+    /* оригинальная фотография — по центру слайда, между колонками карточек */
     const center = el('div', 's8-center');
     const photo = photoSlot(C.s8.photo, 's8-photo card');
+    center.appendChild(photo);
+
+    /* дополнительный текст (без рамок) — продолжает левую колонку под
+       карточками 01-04, свободное terminal-текст на фоне, без карточек */
     const status = el('div', 'sc-sub rv', C.s8.status);
     const dev = el('div', 's8-dev rv', C.s8.centerTop);
-    const log = el('div', 's8-log');
-    const logNodes = C.s8.centerLog.map(() => { const d = el('div'); log.appendChild(d); return d; });
-    const mid = el('div', 's8-mid rv');
-    C.s8.centerMid.forEach(l => mid.appendChild(el('div', null, l)));
-    const st = el('div', 's8-status rv', C.s8.centerStatus);
-
     const ring = el('div', 'ring rv');
     const rsvg = ns('svg', { viewBox: '0 0 132 132', width: 132, height: 132 });
     rsvg.appendChild(ns('circle', { class: 'bg', cx: 66, cy: 66, r: 58 }));
@@ -742,19 +741,31 @@ const SC8 = {
     const num = el('div', 'num', '0%');
     ring.append(rsvg, num);
     const scoreLbl = el('div', 'sc-sub rv', C.s8.score);
+    const scoreBox = el('div', 's8-scorebox');
+    scoreBox.append(ring, scoreLbl);
+    const extraL = el('div', 's8-extra');
+    extraL.append(status, dev, scoreBox);
+    colL.appendChild(extraL);
 
+    /* дополнительный текст (без рамок) — продолжает правую колонку под
+       карточками 05-08 */
+    const log = el('div', 's8-log');
+    const logNodes = C.s8.centerLog.map(() => { const d = el('div'); log.appendChild(d); return d; });
+    const mid = el('div', 's8-mid rv');
+    C.s8.centerMid.forEach(l => mid.appendChild(el('div', null, l)));
+    const st = el('div', 's8-status rv', C.s8.centerStatus);
     const note = el('div', 's8-note rv');
     C.s8.note.forEach(l => note.appendChild(el('div', null, l)));
-
-    center.append(photo, status, dev, log, mid, st, ring, scoreLbl, note);
-    grid.append(colL, center, colR);
-
     const secret = el('div', 's8-secret rv');
     secret.appendChild(el('b', null, C.s8.secret[0]));
     secret.appendChild(el('div', null, C.s8.secret[1]));
     secret.appendChild(el('div', null, C.s8.secret[2]));
+    const extraR = el('div', 's8-extra');
+    extraR.append(log, mid, st, note, secret);
+    colR.appendChild(extraR);
 
-    root.append(H.node, H.rule, grid, secret);
+    grid.append(colL, center, colR);
+    root.append(H.node, H.rule, grid);
     return { H, cardsL, cardsR, photo, status, dev, logNodes, mid, st, ring, fg, num, CIRC, scoreLbl, note, secret };
   },
   async play(ctx, r) {
@@ -767,8 +778,6 @@ const SC8 = {
     r.photo.classList.remove('enter');
     r.photo.classList.add('settle');
     await ctx.wait(260);
-    show(r.status);
-    await ctx.wait(360);
 
     /* карточки чередуются: слева — справа */
     const inter = [];
@@ -782,6 +791,10 @@ const SC8 = {
       await ctx.wait(420);
     }
 
+    /* дополнительный текст без рамок — только теперь, когда весь текст
+       во всех карточках 01-08 полностью вышел */
+    show(r.status);
+    await ctx.wait(360);
     await ctx.wait(300);
     show(r.dev);
     await ctx.wait(300);

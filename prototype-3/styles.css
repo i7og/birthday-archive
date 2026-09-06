@@ -517,10 +517,24 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .tcard .h{ display:flex; gap:8px; align-items:center; font-size:.92em; font-weight:700; color:var(--g-bright); letter-spacing:.06em; }
 .tcard .d{ font-size:.73em; line-height:1.5; color:var(--g); margin-top:3px; }
 .s8-col{ display:flex; flex-direction:column; gap:7px; }
-.s8-center{ display:flex; flex-direction:column; gap:3px; align-items:center; text-align:center; }
-.s8-photo{ width:250px; height:295px; }
-.s8-photo img{ object-position:center 25%; transform:scale(1.02); animation:portraitZoom 3s ease forwards; }
-@keyframes portraitZoom{ to{ transform:scale(1.22); } }
+.s8-center{ display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+/* оригинальное фото по центру: ширина фиксирована, высота — через
+   aspect-ratio исходника (1152×2048 = 9:16), поэтому кадрирование не
+   меняется и человек с архитектурой не обрезаются */
+.s8-photo{
+  width:300px; aspect-ratio:9 / 16;
+  box-shadow:0 0 26px rgba(78,240,138,.16);
+}
+/* очень лёгкая интеграция в дизайн — тёмно-зелёный fade и едва заметные
+   scan-линии только по краям; центр фото (лицо, кожа, архитектура) не
+   перекрашивается */
+.s8-photo.has-img::before{
+  background:
+    radial-gradient(ellipse at center, rgba(6,32,18,0) 55%, rgba(6,34,20,.55) 100%),
+    repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 3px, rgba(0,0,0,.05) 3px 4px);
+}
+.s8-extra{ display:flex; flex-direction:column; gap:14px; margin-top:22px; text-align:left; }
+.s8-scorebox{ display:flex; flex-direction:column; align-items:center; gap:4px; align-self:center; margin-top:4px; }
 .s8-dev{ font-size:1.15em; font-weight:700; color:var(--g-bright); letter-spacing:.08em; }
 .s8-log{ font-size:.8em; line-height:1.45; color:var(--g-mid); text-align:left; width:100%; }
 .s8-mid{ font-size:.86em; line-height:1.5; color:var(--g); }
