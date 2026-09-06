@@ -519,7 +519,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 
 /* ============================ SCENE 8 ============================ */
 
-.s8-grid{ display:grid; grid-template-columns:1fr 560px 1fr; gap:18px; flex:1 1 auto; align-content:start; }
+.s8-grid{ display:grid; grid-template-columns:1fr 580px 1fr; gap:18px; flex:1 1 auto; align-content:start; }
 .s8{ padding-top:52px; padding-bottom:6px; }
 .tcard{ border:1px solid var(--line); background:var(--panel); padding:10px 13px; overflow:hidden; }
 .tcard .h{ display:flex; gap:8px; align-items:center; font-size:.92em; font-weight:700; color:var(--g-bright); letter-spacing:.06em; }
@@ -530,7 +530,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
    aspect-ratio исходника (1152×2048 = 9:16), поэтому кадрирование не
    меняется и человек с архитектурой не обрезаются */
 .s8-photo{
-  width:380px; aspect-ratio:9 / 16;
+  width:400px; aspect-ratio:9 / 16;
   box-shadow:0 0 26px rgba(78,240,138,.16);
 }
 /* очень лёгкая интеграция в дизайн — тёмно-зелёный fade и едва заметные

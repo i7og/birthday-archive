@@ -174,20 +174,21 @@ window.CONTENT = {
     region: "ANDALUCÍA, SPAIN",
     status: ["EXPLORATION STATUS: ACTIVE", "BEYOND THE USUAL ROUTES"],
     /* порядок появления строго по ТЗ. Координаты подобраны под фоновую
-       фотографию карты (photos/s6-andalucia-map.png, вставлена как
-       image в тот же viewBox 0 0 1000 600) — MÁLAGA совмещена с готовым
-       пином на самой фотографии, остальные точки расставлены по тем же
-       относительным направлениям и расстояниям от неё, что и раньше */
+       фотографию карты (photos/s6-andalucia-map.png, вставлена как image
+       в тот же viewBox 0 0 1000 600, preserveAspectRatio "xMidYMin slice" —
+       фото заполняет рамку целиком без чёрных полей) — MÁLAGA совмещена
+       с готовым пином на самой фотографии, остальные точки расставлены
+       по тем же относительным направлениям и расстояниям от неё */
     pins: [
-      { name:"NERJA",        x:566.7, y:347.8 },
-      { name:"ÚBEDA",        x:647.6, y:60 },
-      { name:"RONDA",        x:343.9, y:311.7, side:"left" },
-      { name:"GRANADA",      x:609.9, y:221.6 },
-      { name:"CÓRDOBA",      x:419.6, y:78 },
-      { name:"BENALMÁDENA",  x:435.3, y:359.4, side:"left" },
-      { name:"TORREMOLINOS", x:464.8, y:386.4, hot:true }
+      { name:"NERJA",        x:571.4, y:372.2 },
+      { name:"ÚBEDA",        x:658.0, y:64.2 },
+      { name:"RONDA",        x:332.9, y:333.6, side:"left" },
+      { name:"GRANADA",      x:617.6, y:237.2 },
+      { name:"CÓRDOBA",      x:413.9, y:83.5 },
+      { name:"BENALMÁDENA",  x:430.8, y:384.7, side:"left" },
+      { name:"TORREMOLINOS", x:462.3, y:413.6, hot:true }
     ],
-    malaga: { name:"MÁLAGA", x:484.75, y:293.7 },
+    malaga: { name:"MÁLAGA", x:483.7, y:314.3 },
     zoomTitle: "MÁLAGA",
     /* реальные координаты (WGS84, OpenStreetMap/Nominatim), спроецированные в
        этот viewBox тем же способом, что и MALAGA_OUTLINE (cos-коррекция по

@@ -503,13 +503,18 @@ const SC6 = {
     const map = el('div', 'mapbox');
     const regionLbl = el('div', 'lbl lbl-region rv', C.s6.region);
     map.appendChild(regionLbl);
-    const svg = ns('svg', { viewBox: '0 0 1000 600', preserveAspectRatio: 'xMidYMid meet' });
+    /* внешний svg тоже "slice" — контейнер карты не 1000:600, и с "meet"
+       сверху/снизу оставались бы чёрные поля вокруг всей карты целиком */
+    const svg = ns('svg', { viewBox: '0 0 1000 600', preserveAspectRatio: 'xMidYMid slice' });
     /* реальное фото готовой карты (photos/s6-andalucia-map.png) вместо
        отрисованного кодом контура — вставлено как SVG-image в тот же
-       viewBox, чтобы пины (ниже) остались в одной системе координат */
+       viewBox, чтобы пины (ниже) остались в одной системе координат.
+       "slice" + выравнивание по верху (YMin) — фото заполняет рамку
+       целиком без чёрных полос; обрезается только нижний тёмный отступ
+       самого фото (запас там намного больше, чем сверху) */
     const outline = ns('image', {
       class: 'outline-photo', href: 'photos/s6-andalucia-map.png',
-      x: 0, y: 0, width: 1000, height: 600, preserveAspectRatio: 'xMidYMid meet'
+      x: 0, y: 0, width: 1000, height: 600, preserveAspectRatio: 'xMidYMin slice'
     });
     svg.appendChild(outline);
     const pinsG = ns('g');
