@@ -366,18 +366,27 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s5-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:26px; margin-top:6px; }
 .s5-block .k{ text-align:center; font-size:1.05em; letter-spacing:.2em; color:var(--g-bright); margin-bottom:10px; }
 .s5-block .photo{ height:392px; position:relative; }
-.s5-block .photo img{ object-fit:cover; background:#020704; }
-.s5-family .photo img{ object-position:center 32%; transform:scale(1.12); }
-.s5-block .cap{ font-size:1.23em; letter-spacing:.06em; color:var(--g-mid); margin-top:7px; text-align:left; }
+.s5-block .photo img{ object-fit:contain; background:#020704; }
+.s5-family .photo img{ object-fit:cover; object-position:center 32%; transform:scale(1.12); }
+.s5-relationship .photo img{ object-fit:cover; }
+.s5-block .cap{ font-size:1.12em; letter-spacing:.06em; color:var(--g-mid); margin-top:7px; text-align:left; white-space:nowrap; }
 /* без матричного CRT-тона — здесь фото должны читаться чисто */
 .s5-block .photo.has-img::before{ content:none; }
 .s5-logo{
-  position:absolute; top:8px; right:8px; width:88px; height:88px; z-index:4;
+  position:absolute; top:8px; right:8px; width:62px; height:62px; z-index:4;
   display:flex; align-items:center; justify-content:center;
-  background:#fff; border-radius:8px; padding:9px;
-  box-shadow:0 3px 12px rgba(0,0,0,.4);
 }
 .s5-logo img{ width:100%; height:100%; object-fit:contain; }
+/* лёгкий белый digital-glitch поверх оригинального логотипа: screen-блендинг
+   только высветляет несколько тонких полос, не перекрашивая сам рисунок */
+.s5-logo::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  mix-blend-mode:screen;
+  background:
+    linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,.5)) 4% 20% / 55% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,.35)) 35% 48% / 40% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.4)) 10% 74% / 50% 2px no-repeat;
+}
 .s5-collage{ position:absolute; inset:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; }
 .s5-collage > div{ position:relative; overflow:hidden; }
 .s5-collage > div:last-child:nth-child(3){ grid-column:1 / -1; }
@@ -774,7 +783,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   font-size:.7em; letter-spacing:.14em; color:var(--g-faint);
 }
-.s5-collage > div img{ position:relative; z-index:2; width:100%; height:100%; object-fit:cover;
+.s5-collage > div img{ position:relative; z-index:2; width:100%; height:100%; object-fit:contain;
                        background:#020704; filter:saturate(.82) contrast(1.03); }
 .s5-collage > div{ border:1px solid var(--line-soft); cursor:pointer; }
 .s5-collage > div:hover{ border-color:var(--g); }
