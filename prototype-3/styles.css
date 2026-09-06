@@ -274,7 +274,11 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   content:''; position:absolute; inset:6px; border:1px dashed rgba(78,240,138,.22);
   pointer-events:none;
 }
-.photo img{ display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.9) contrast(1.03); animation:photoIn 1.4s ease both; }
+/* fill-mode "backwards" (не "both"!) — иначе конечный кадр анимации
+   (transform:none) навсегда перекрывал бы transform:scale(...), который
+   некоторые фото (например .s5-family/.s5-colleagues) задают отдельным
+   правилом для управления кадрированием */
+.photo img{ display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.9) contrast(1.03); animation:photoIn 1.4s ease backwards; }
 @keyframes photoIn{ from{ opacity:0; transform:scale(1.05); } to{ opacity:1; transform:none; } }
 /* лёгкий CRT-тон поверх фото, чтобы оно жило в одном мире с терминалом.
    В окне (клик по фото) снимок показывается без тонировки, в оригинале.
@@ -824,10 +828,6 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .mapbox svg .outline.draw{ transition:stroke-dashoffset 2s ease; stroke-dashoffset:0; }
 /* coastline + river — открытые линии, не замкнутый полигон, без заливки */
 .mapbox svg .outline--lines{ fill:none; stroke-width:2; }
-/* фото готовой карты вместо отрисованного контура — вместо «рисования»
-   линии просто мягко проявляется целиком */
-.mapbox svg .outline-photo{ opacity:0; transition:opacity 2s ease; }
-.mapbox svg .outline-photo.draw{ opacity:1; }
 
 /* --- кадр 7 --- */
 .s7-stack{ display:flex; flex-direction:column; gap:14px; }

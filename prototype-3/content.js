@@ -173,34 +173,32 @@ window.CONTENT = {
     title: "KNOWN LOCATIONS",
     region: "ANDALUCÍA, SPAIN",
     status: ["EXPLORATION STATUS: ACTIVE", "BEYOND THE USUAL ROUTES"],
-    /* порядок появления строго по ТЗ. Координаты подобраны под фоновую
-       фотографию карты (photos/s6-andalucia-map.png, вставлена как image
-       в тот же viewBox 0 0 1000 600, preserveAspectRatio "xMidYMin slice" —
-       фото заполняет рамку целиком без чёрных полей) — MÁLAGA совмещена
-       с готовым пином на самой фотографии, остальные точки расставлены
-       по тем же относительным направлениям и расстояниям от неё */
+    /* порядок появления строго по ТЗ */
     pins: [
-      { name:"NERJA",        x:571.4, y:372.2 },
-      { name:"ÚBEDA",        x:658.0, y:64.2 },
-      { name:"RONDA",        x:332.9, y:333.6, side:"left" },
-      { name:"GRANADA",      x:617.6, y:237.2 },
-      { name:"CÓRDOBA",      x:413.9, y:83.5 },
-      { name:"BENALMÁDENA",  x:430.8, y:384.7, side:"left" },
-      { name:"TORREMOLINOS", x:462.3, y:413.6, hot:true }
+      { name:"NERJA",        x:612, y:428 },
+      { name:"ÚBEDA",        x:689, y:182 },
+      { name:"RONDA",        x:400, y:400, side:"left" },
+      { name:"GRANADA",      x:653, y:330 },
+      { name:"CÓRDOBA",      x:472, y:203 },
+      { name:"BENALMÁDENA",  x:487, y:437, side:"left" },
+      { name:"TORREMOLINOS", x:515, y:458, hot:true }
     ],
-    malaga: { name:"MÁLAGA", x:483.7, y:314.3 },
+    malaga: { name:"MÁLAGA", x:534, y:386 },
     zoomTitle: "MÁLAGA",
     /* реальные координаты (WGS84, OpenStreetMap/Nominatim), спроецированные в
        этот viewBox тем же способом, что и MALAGA_OUTLINE (cos-коррекция по
        широте, единый масштаб). Маркер стоит строго по географии; у четырёх
        точек центральной группы (они в 300–900 м друг от друга в реальности)
-       вынесена только подпись — labelOffset — с leader line к маркеру. */
+       вынесена только подпись — labelOffset — с leader line к маркеру.
+       Все 4 подписи вынесены единым столбцом вправо (не в разные стороны),
+       чтобы leader-линии не перекрещивались веером друг с другом — только
+       короткий, аккуратный сходящийся пучок у самого кластера маркеров. */
     zoomPins: [
       { name:"BOTANICAL GARDEN", x:235.2, y:61.3 },
-      { name:"ALCAZABA",         x:266.0, y:211.6, labelOffset:{dx:5.6,  dy:46.4} },
-      { name:"GIBRALFARO",       x:278.0, y:203.0, labelOffset:{dx:30.6, dy:-59.7} },
-      { name:"PICASSO MUSEUM",   x:259.2, y:209.6, labelOffset:{dx:-179.4, dy:-61.9} },
-      { name:"CITY CENTRE",      x:248.4, y:211.3, labelOffset:{dx:-247.8, dy:-8.8} }
+      { name:"GIBRALFARO",       x:278.0, y:203.0, labelOffset:{dx:100.0, dy:-101.4} },
+      { name:"ALCAZABA",         x:266.0, y:211.6, labelOffset:{dx:116.7, dy:-60.6} },
+      { name:"PICASSO MUSEUM",   x:259.2, y:209.6, labelOffset:{dx:126.1, dy:-5.0} },
+      { name:"CITY CENTRE",      x:248.4, y:211.3, labelOffset:{dx:141.1, dy:45.4} }
     ],
     summary: ["TOTAL LOCATIONS: 8", "MÁLAGA SUB-LOCATIONS: 5"],
     highlight: ["TORREMOLINOS", "THE MOST VISITED LOCATION OF VERSION 41.0"]

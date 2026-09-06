@@ -445,6 +445,13 @@ const SC5 = {
 /* =========================================================================
    КАДР 6 — карта
    ========================================================================= */
+const ANDALUCIA =
+  'M63,264 L94,228 L117,180 L140,147 L193,165 L239,147 L293,108 L377,121 L431,85 ' +
+  'L492,55 L554,49 L615,72 L676,76 L738,85 L784,67 L830,76 L868,112 L914,157 ' +
+  'L952,201 L929,255 L883,291 L906,336 L929,363 L883,390 L822,393 L760,408 ' +
+  'L699,413 L638,411 L577,413 L528,415 L493,434 L455,456 L417,488 L386,515 ' +
+  'L348,510 L302,497 L256,470 L241,425 L226,380 L172,353 L126,344 L73,327 Z';
+
 /* настоящие береговая линия Средиземного моря и русло реки Гуадальмедина
    в районе центра Малаги (OpenStreetMap/Overpass: way natural=coastline,
    way waterway=river "Río Guadalmedina"), упрощены и спроецированы в этот
@@ -468,8 +475,6 @@ function pinNode(p, s) {
 
   box.appendChild(ns('path', { d: 'M0,0 C-9,-13 -13,-19 -13,-25 A13,13 0 1 1 13,-25 C13,-19 9,-13 0,0 Z' }));
   box.appendChild(ns('circle', { cx: 0, cy: -25, r: 4.5, fill: '#030d07' }));
-
-  if (p.noLabel) { anim.appendChild(box); g.appendChild(anim); return g; }
 
   const w = p.name.length * 9.2 + 16;
   let x, y;
@@ -503,26 +508,13 @@ const SC6 = {
     const map = el('div', 'mapbox');
     const regionLbl = el('div', 'lbl lbl-region rv', C.s6.region);
     map.appendChild(regionLbl);
-    /* внешний svg тоже "slice" — контейнер карты не 1000:600, и с "meet"
-       сверху/снизу оставались бы чёрные поля вокруг всей карты целиком */
-    const svg = ns('svg', { viewBox: '0 0 1000 600', preserveAspectRatio: 'xMidYMid slice' });
-    /* реальное фото готовой карты (photos/s6-andalucia-map.png) вместо
-       отрисованного кодом контура — вставлено как SVG-image в тот же
-       viewBox, чтобы пины (ниже) остались в одной системе координат.
-       "slice" + выравнивание по верху (YMin) — фото заполняет рамку
-       целиком без чёрных полос; обрезается только нижний тёмный отступ
-       самого фото (запас там намного больше, чем сверху) */
-    const outline = ns('image', {
-      class: 'outline-photo', href: 'photos/s6-andalucia-map.png',
-      x: 0, y: 0, width: 1000, height: 600, preserveAspectRatio: 'xMidYMin slice'
-    });
+    const svg = ns('svg', { viewBox: '0 0 1000 600', preserveAspectRatio: 'xMidYMid meet' });
+    const outline = ns('path', { class: 'outline', d: ANDALUCIA, pathLength: 1000 });
     svg.appendChild(outline);
     const pinsG = ns('g');
     svg.appendChild(pinsG);
     const pins = C.s6.pins.map(p => { const n = pinNode(p); pinsG.appendChild(n); return n; });
-    /* подпись MÁLAGA уже нарисована на самой карте-фотографии — у динамического
-       пина оставляем только маркер (без второй, дублирующей подписи) */
-    const cityPin = pinNode(Object.assign({ city: true, noLabel: true }, C.s6.malaga));
+    const cityPin = pinNode(Object.assign({ city: true, side: 'left' }, C.s6.malaga));
     pinsG.appendChild(cityPin);
     map.appendChild(svg);
 
