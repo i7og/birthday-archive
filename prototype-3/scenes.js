@@ -990,7 +990,22 @@ const SC10 = {
     show(r.bar);
     await ctx.wait(400);
     await runBar(ctx, r.bar, 100, 2400);
+
+    /* Переход на 11-й кадр привязан СТРОГО к завершению именно этой
+       дорожки (см. addEventListener('ended', ...) ниже) — не к тому,
+       сколько ещё продлятся fireworks/пожелания/эта функция. goTo() в
+       app.js специально не запускает обычный auto-next для кадра 10
+       (см. special-case там же), поэтому единственный, кто вызывает
+       переход — обработчик 'ended'. Сама эта функция вполне может быть
+       прервана токеном сцены задолго до своего естественного конца —
+       это ожидаемо и не является багом. */
     Snd.play('mario');
+    const marioTrack = Snd.tracks.mario;
+    if (marioTrack && !marioTrack._dead) {
+      const onMarioEnded = () => { if (!ctx.dead && E.autoplay) goTo(10); };
+      marioTrack.addEventListener('ended', onMarioEnded, { once: true });
+      r._marioCleanup = () => marioTrack.removeEventListener('ended', onMarioEnded);
+    }
     await ctx.wait(300);
     show(r.done);
     await ctx.wait(900);
@@ -1003,15 +1018,24 @@ const SC10 = {
     show(r.tail);
     await ctx.wait(6000);
   },
-  stop(r) { if (r && r._stopFw) { r._stopFw(); r._stopFw = null; } }
+  stop(r) {
+    if (r && r._stopFw) { r._stopFw(); r._stopFw = null; }
+    if (r && r._marioCleanup) { r._marioCleanup(); r._marioCleanup = null; }
+  }
 };
 
 /* =========================================================================
    КАДР 11 — повреждённый сектор: Matrix-fill → scratch-восстановление
    ========================================================================= */
-const S11_GLYPHS = ['0', '1', '#', '%', '/', '\\', '>', '<', '*', '+', '-', '_', '▓', '▒', '░', '@', '$'];
-const S11_WORDS = ['SYS', 'REC', 'MEM', 'DATA', 'SECTOR', 'BUFFER', 'READ', '0x41', 'RESTORE'];
-const S11_WARN = ['ERR', 'FAIL', 'CORRUPT', 'LOCK'];
+/* только Matrix-глифы — визуальный язык стартового Matrix-экрана
+   (selector.js), без единого читаемого английского слова: фон не должен
+   содержать никаких «смысловых» токенов, даже редких/скрытых */
+const S11_GLYPHS = [
+  '0', '1',
+  'ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク', 'ケ', 'コ', 'サ', 'シ', 'ス', 'セ', 'ソ',
+  'Ж', 'Д', 'Й', 'Ф', 'Σ', 'λ',
+  '{', '}', '[', ']', '<', '>', '/', '\\', '+', '-', '*'
+];
 /* целевая доля заполнения экрана «осевшими» символами в момент t (сек) —
    приблизительная, самокорректирующаяся кривая (см. trySettle) */
 const S11_CURVE = [[0, 0], [0.8, .15], [1.6, .35], [2.4, .60], [3.2, .80], [4.0, .95]];
@@ -1044,7 +1068,7 @@ function corruptedMask(canvas, photoBox) {
      ячеек, обновляемая вместе со scratch-мазками) — дёшево и не зависит
      от того, насколько плотно нарисованы символы в конкретной ячейке */
   let erased = null, erasedCount = 0;
-  let pointerId = null, lastPt = null, sampleIv = null, dirty = false, recovered = false;
+  let pointerId = null, lastPt = null, sampleIv = null, dirty = false, completed = false;
   const brushR = matchMedia('(pointer:coarse)').matches ? 85 : 70;
 
   /* ДВА слоя в одном canvas:
@@ -1055,60 +1079,20 @@ function corruptedMask(canvas, photoBox) {
         честная память ячеек вместо трюка с rgba-фейдом);
      2. drops[] — активные падающие колонки (голова + короткий хвост),
         рисуются поверх settled[] каждый кадр заново, без накопления.
-     claimed[] — служебная сетка: ячейки, занятые «хвостом» многобуквенного
-     слова/токена в settled[]; они ничего не рисуют сами (родительская
-     ячейка слова уже нарисовала туда текст), но помечены занятыми, чтобы
-     туда никогда не поместили случайный шумовой символ поверх слова. */
-  let settled = null, claimed = null, drawList = [], settledCount = 0;
+     Оба слоя — один и тот же визуальный ряд Matrix-глифов; фон нигде не
+     содержит читаемых слов и никак не выделяет отдельные ячейки цветом
+     «по смыслу» — единственный читаемый текст сцены это центральная
+     UI-подсказка поверх canvas (.s11-hint). */
+  let settled = null, drawList = [], settledCount = 0;
 
-  function placeNoise(c, row) {
-    const idx = row * cols + c;
-    settled[idx] = {
-      ch: S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0],
-      color: ['#2f7a49', '#3b9858'][(Math.random() * 2) | 0],
-      shadowColor: null, shadowBlur: 0,
-      font: (cellSize * 0.82) + 'px "Roboto Mono", monospace', dy: 1
-    };
-    drawList.push(idx); settledCount++;
-  }
-  /* «читаемый» токен (системное слово или warning) может занимать несколько
-     ячеек по ширине — cellSize НЕ используется как maxWidth в fillText,
-     иначе слово сжимается и становится нечитаемым (см. комментарий ниже
-     про заброшенный вариант с обрезкой). Если ячейки под слово справа уже
-     заняты (settled или claimed), молча откатываемся на одиночный шумовой
-     символ вместо слова — иначе слово легло бы поверх чужих данных. */
-  function placeToken(c, row, text, tier) {
-    const fontPx = cellSize * 0.58;
-    ctx.font = fontPx + 'px "Roboto Mono", monospace';
-    const overflow = (2 + ctx.measureText(text).width) - cellSize;
-    const span = 1 + (overflow > 0 ? Math.ceil(overflow / cellSize) : 0);
-    if (c + span > cols) { placeNoise(c, row); return; }
-    for (let k = 0; k < span; k++) {
-      const idx2 = row * cols + c + k;
-      if (settled[idx2] != null || claimed[idx2]) { placeNoise(c, row); return; }
-    }
-    const idx = row * cols + c;
-    const warn = tier === 'warn';
-    settled[idx] = {
-      ch: text,
-      color: warn ? '#d6a84b' : '#9dffc0',
-      shadowColor: warn ? 'rgba(214,168,75,.6)' : 'rgba(100,255,160,.7)',
-      shadowBlur: warn ? 4 : 5,
-      font: fontPx + 'px "Roboto Mono", monospace', dy: 2
-    };
-    drawList.push(idx); settledCount++;
-    for (let k = 1; k < span; k++) { claimed[row * cols + c + k] = 1; settledCount++; }
-  }
-  /* три уровня «данных»: обычный фоновый мусор (тёмный, большинство ячеек),
-     редкие читаемые системные слова (ярко-зелёные) и совсем редкие
-     warning-токены (приглушённый янтарный — старый терминал, не modern-red) */
   function settleCell(c, row) {
     const idx = row * cols + c;
-    if (settled[idx] != null || claimed[idx]) return;
-    const r = Math.random();
-    if (r < 0.01) placeToken(c, row, S11_WARN[(Math.random() * S11_WARN.length) | 0], 'warn');
-    else if (r < 0.07) placeToken(c, row, S11_WORDS[(Math.random() * S11_WORDS.length) | 0], 'sys');
-    else placeNoise(c, row);
+    if (settled[idx] != null) return;
+    settled[idx] = {
+      ch: S11_GLYPHS[(Math.random() * S11_GLYPHS.length) | 0],
+      color: ['#2f7a49', '#3b9858'][(Math.random() * 2) | 0]
+    };
+    drawList.push(idx); settledCount++;
   }
   /* решает, «осядет» ли символ в ячейке (c,row), мимо которой только что
      прошла падающая колонка. Вероятность подстраивается под целевую
@@ -1118,7 +1102,7 @@ function corruptedMask(canvas, photoBox) {
   function trySettle(c, row, elapsed) {
     if (row < 0 || row >= rows) return;
     const idx = row * cols + c;
-    if (settled[idx] != null || claimed[idx]) return;
+    if (settled[idx] != null) return;
     const target = s11CurveDensity(elapsed) * cols * rows;
     const p = settledCount < target ? 0.85 : 0.05;
     if (Math.random() < p) settleCell(c, row);
@@ -1144,7 +1128,7 @@ function corruptedMask(canvas, photoBox) {
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cols = Math.max(1, Math.ceil(W / cellSize)); rows = Math.max(1, Math.ceil(H / cellSize));
-    settled = new Array(cols * rows).fill(null); claimed = new Uint8Array(cols * rows);
+    settled = new Array(cols * rows).fill(null);
     drawList = []; settledCount = 0; drops = [];
     erased = new Uint8Array(cols * rows); erasedCount = 0;
     fillDone = false; windingDown = false;
@@ -1164,18 +1148,16 @@ function corruptedMask(canvas, photoBox) {
     ctx.fillStyle = S11_BG;
     ctx.fillRect(0, 0, W, H);
     ctx.textBaseline = 'top';
+    ctx.font = (cellSize * 0.82) + 'px "Roboto Mono", monospace';
+    ctx.shadowBlur = 0;
     for (let i = 0; i < drawList.length; i++) {
       const idx = drawList[i];
       const d = settled[idx];
       if (!d) continue;
       const row = (idx / cols) | 0, c = idx % cols;
-      ctx.font = d.font;
-      if (d.shadowColor) { ctx.shadowColor = d.shadowColor; ctx.shadowBlur = d.shadowBlur; }
-      else ctx.shadowBlur = 0;
       ctx.fillStyle = d.color;
-      ctx.fillText(d.ch, c * cellSize + 2, row * cellSize + d.dy);
+      ctx.fillText(d.ch, c * cellSize + 2, row * cellSize + 1);
     }
-    ctx.shadowBlur = 0;
     /* падающий слой — голова + короткий тающий хвост, целиком по мотивам
        selector.js (тот же яркий/тусклый цвет), но БЕЗ его приёма с
        rgba-заливкой всего канваса — здесь трейл лишь визуальный и не
@@ -1267,7 +1249,7 @@ function corruptedMask(canvas, photoBox) {
     }
     for (let k = 0; k < order.length && settledCount < target; k++) {
       const idx = order[k];
-      if (settled[idx] != null || claimed[idx]) continue;
+      if (settled[idx] != null) continue;
       settleCell(idx % cols, (idx / cols) | 0);
     }
     drops = [];
@@ -1339,15 +1321,24 @@ function corruptedMask(canvas, photoBox) {
     addEventListener('pointerup', upH);
     addEventListener('pointercancel', upH);
     sampleIv = setInterval(() => {
-      if (!dirty || recovered) return;
+      if (!dirty) return;
       dirty = false;
       const pct = progressPct();
       if (onProgress) onProgress(pct);
-      if (pct >= 68) complete(pct);
+      /* «завершение» — это только статус-уведомление (см. onVerifying/
+         onRecovered), НЕ автоматическая очистка маски. Царапать можно
+         и после него — то, что пользователь не стёр сам, останется на
+         экране сколько угодно; canvas никогда не исчезает сам по себе. */
+      if (pct >= 97 && !completed) {
+        completed = true;
+        if (onVerifying) onVerifying();
+        Snd.play('scan');
+        canvas.classList.add('glitch');
+        setTimeout(() => { if (onRecovered) onRecovered(); }, 550);
+      }
     }, 180);
   }
   function downH(e) {
-    if (recovered) return;
     pointerId = e.pointerId;
     canvas.setPointerCapture(pointerId);
     lastPt = null;
@@ -1355,27 +1346,17 @@ function corruptedMask(canvas, photoBox) {
     if (onProgress) onProgress(progressPct());
   }
   function moveH(e) {
-    if (recovered || e.pointerId !== pointerId) return;
+    if (e.pointerId !== pointerId) return;
     if (e.buttons === 0) return;
     eraseAt(ptFromEvent(e));
   }
   function upH() { pointerId = null; lastPt = null; }
-  function complete(pct) {
-    recovered = true;
-    if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
-    if (onProgress) onProgress(100);
-    if (onVerifying) onVerifying();
-    Snd.play('scan');
-    canvas.classList.add('glitch');
-    setTimeout(() => {
-      canvas.classList.add('clearing');
-      setTimeout(() => { ctx.clearRect(0, 0, canvas.width, canvas.height); if (onRecovered) onRecovered(); }, 620);
-    }, 260);
-  }
+  /* только для E.instant (мгновенное превью) — реальный пользователь
+     всегда открывает картинку вручную, эта функция не часть обычного UX */
   function forceComplete() {
-    if (recovered) return;
+    if (completed) return;
+    completed = true;
     if (sampleIv) { clearInterval(sampleIv); sampleIv = null; }
-    recovered = true;
     if (onProgress) onProgress(100);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (onRecovered) onRecovered();
@@ -1389,7 +1370,7 @@ function corruptedMask(canvas, photoBox) {
     removeEventListener('pointercancel', upH);
   }
 
-  return { prepare, startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => recovered };
+  return { prepare, startFill, fillInstant, enableScratch, forceComplete, destroy, isFillDone: () => fillDone, isRecovered: () => completed };
 }
 
 const SC11 = {
@@ -1465,7 +1446,9 @@ const SC11 = {
     r.mask.enableScratch({
       onProgress(pct) {
         r.progressVal.textContent = pad(pct) + '%';
-        if (pct > 4) r.hint.classList.add('hide');
+        /* не прятать подсказку от первого же случайного движения — только
+           когда пользователь реально начал царапать заметную площадь */
+        if (pct >= 10) r.hint.classList.add('hide');
       },
       onVerifying() { r.hint.classList.add('hide'); show(r.verified); },
       onRecovered() { r.verified.classList.remove('in'); recovered = true; }

@@ -658,7 +658,6 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
      достаточная страховка на случай, если сам img ещё не отрисован */
   cursor:none; touch-action:none; -webkit-user-select:none; user-select:none;
 }
-.s11-canvas.clearing{ transition:opacity .6s ease; opacity:0; }
 .s11-canvas.glitch{ animation:s11glitch .13s steps(2,end) 4; }
 @keyframes s11glitch{
   0%{ transform:none; filter:none; }
@@ -683,6 +682,10 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:4;
   text-align:center; pointer-events:none; transition:opacity .4s ease;
   font-size:1.05em; letter-spacing:.14em; color:var(--g-bright); text-shadow:0 0 10px rgba(78,240,138,.4);
+  /* терминальный blackout под текстом — единственное читаемое место на
+     всей Matrix-поверхности, фон под ним не должен мешать читать */
+  background:rgba(0,5,2,.88); border:1px solid rgba(78,240,138,.3);
+  padding:14px 22px;
 }
 .s11-hint div:last-child{ margin-top:8px; font-size:.78em; letter-spacing:.12em; color:var(--g-dim); text-shadow:none; }
 .s11-hint.hide{ opacity:0; }
