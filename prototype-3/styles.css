@@ -686,33 +686,40 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   100%{ transform:translateX(-3px); filter:brightness(.65); }
 }
 
-/* квадратный «прицел дешифровки» вместо круглой стирающей кисти — по
-   размеру примерно соответствует interaction radius в scenes.js (см.
-   const radius). z-index:20 гарантированно выше photo(1)/canvas(2)/
-   hint(5) — курсор не может оказаться «под» ними ни при каких стеках */
+/* компактный квадратный «прицел дешифровки» — ЧИСТО визуальный размер, он
+   намеренно НЕ равен decryptRadius в scenes.js (тот меньше видимого на
+   touch и больше на десктопе только логически — пользователю не обязательно
+   видеть реальную площадь захвата). z-index:20 гарантированно выше
+   photo(1)/canvas(2)/hint(5) — курсор не может оказаться «под» ними ни при
+   каких стеках */
 .s11-cursor{
-  --s11r:70px;
-  position:absolute; left:0; top:0; width:calc(var(--s11r) * 2); height:calc(var(--s11r) * 2);
-  margin-left:calc(var(--s11r) * -1); margin-top:calc(var(--s11r) * -1);
+  --s11size:32px;
+  position:absolute; left:0; top:0; width:var(--s11size); height:var(--s11size);
+  margin-left:calc(var(--s11size) / -2); margin-top:calc(var(--s11size) / -2);
   pointer-events:none; opacity:0; z-index:20; will-change:transform;
 }
 .s11-cursor.on{ opacity:1; }
 .s11-cursor i{
-  position:absolute; width:16px; height:16px;
+  position:absolute; width:7px; height:7px;
   border:2px solid rgba(157,255,192,.85);
-  filter:drop-shadow(0 0 4px rgba(78,240,138,.5));
+  filter:drop-shadow(0 0 3px rgba(78,240,138,.5));
 }
 .s11-cursor i.tl{ top:0; left:0; border-right:0; border-bottom:0; }
 .s11-cursor i.tr{ top:0; right:0; border-left:0; border-bottom:0; }
 .s11-cursor i.bl{ bottom:0; left:0; border-right:0; border-top:0; }
 .s11-cursor i.br{ bottom:0; right:0; border-left:0; border-top:0; }
 .s11-cursor .dot{
-  position:absolute; left:50%; top:50%; width:5px; height:5px; margin:-2.5px 0 0 -2.5px;
-  background:rgba(157,255,192,.9); border-radius:50%; box-shadow:0 0 6px rgba(78,240,138,.7);
+  position:absolute; left:50%; top:50%; width:4px; height:4px; margin:-2px 0 0 -2px;
+  background:rgba(157,255,192,.9); border-radius:50%; box-shadow:0 0 5px rgba(78,240,138,.7);
 }
 /* пока рядом с курсором идёт активная дешифровка — лёгкий pulse/glow */
-.s11-cursor.active i{ border-color:#effff4; filter:drop-shadow(0 0 7px rgba(239,255,244,.8)); animation:s11cursorpulse .5s ease-in-out infinite; }
-@keyframes s11cursorpulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.08); } }
+.s11-cursor.active i{ border-color:#effff4; filter:drop-shadow(0 0 6px rgba(239,255,244,.8)); animation:s11cursorpulse .5s ease-in-out infinite; }
+@keyframes s11cursorpulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.12); } }
+/* на touch палец и так закрывает область — свой прицел только мешает;
+   взаимодействие (decryptRadius в scenes.js) при этом не отключается */
+@media (pointer:coarse){
+  .s11-cursor{ display:none; }
+}
 
 .s11-hint{
   position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5;
@@ -878,7 +885,6 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
   .s6-grid{ grid-template-columns:1fr; }
   .mapbox{ min-height:280px; }
   .s7-grid,.s8-grid,.s9-grid,.s10-wrap{ grid-template-columns:1fr; }
-  .s11-cursor{ --s11r:85px; }
   /* на узком экране .s11-intro (top-left) и .s11-final (top-right)
      физически не помещаются рядом и накладываются друг на друга —
      переносим итоговую плашку вниз, где и так уже есть свободный

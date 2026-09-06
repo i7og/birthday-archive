@@ -1073,8 +1073,29 @@ function corruptedMask(canvas, photoBox, photoImg) {
      progress/интеракции; totalValidCells — их количество (знаменатель %). */
   let cellStatus = null, validCell = null, totalValidCells = 0, revealedCount = 0;
   let active = [], raf2 = null;
-  let pointerId = null, lastPt = null, completed = false, recoveredFired = false;
-  const radius = matchMedia('(pointer:coarse)').matches ? 85 : 70;
+  let pointerId = null, lastPt = null, lastTriggerPt = null, completed = false, recoveredFired = false;
+  /* decryptRadius — фактический радиус активации ячеек — НЕ равен размеру
+     видимого курсора (тот чисто визуальный, задаётся в CSS через --s11size
+     у .s11-cursor). На touch зона и так «съедается» пальцем, поэтому там
+     радиус даже меньше десктопного, а не больше: маленький viewport +
+     большой radius раньше открывал картинку за 1-2 свайпа.
+     maxCellsPerMove — сколько НОВЫХ ячеек может активировать один вызов
+     triggerNear() (иначе один широкий жест мышью/пальцем сразу открывает
+     весь кластер внутри радиуса и ощущение контроля пропадает).
+     pathStep — сколько нужно физически проехать курсором/пальцем в CSS-px,
+     прежде чем triggerNear() вызовется снова — иначе он гоняется на
+     каждый нативный pointermove (могут идти через доли пикселя). */
+  const isCoarse = matchMedia('(pointer:coarse)').matches;
+  const decryptRadius = isCoarse ? 24 : 42;
+  /* фото s11-dawnwalker.jpg широкое (2.39:1) — на портретном мобильном
+     экране letterbox съедает большую часть высоты, и валидная область
+     сжимается всего до ~120 ячеек (проверено на iPhone-size вьюпорте).
+     Даже при decryptRadius=24 один поперечный свайп на весь экран без
+     доп. ограничения открывал >90% за раз — поэтому maxCellsPerMove на
+     touch снижен до 2 (не 4), чтобы на реальном изображении требовалось
+     заметно больше одного жеста, как и просили. */
+  const maxCellsPerMove = isCoarse ? 2 : 8;
+  const pathStep = isCoarse ? 18 : 20;
   const DECRYPT_MS = 230;
 
   /* ДВА слоя в одном canvas:
@@ -1362,17 +1383,18 @@ function corruptedMask(canvas, photoBox, photoImg) {
   }
   function ensureInteractiveLoop() { if (!raf2) raf2 = requestAnimationFrame(interactiveFrame); }
 
-  /* находит запертые валидные ячейки в radius от точки (cx,cy) и планирует
-     их дешифровку с небольшой задержкой по расстоянию (волна) + джиттер —
-     так эффект выглядит как расходящаяся от курсора реакция, а не «все
-     ячейки разом» */
+  /* находит запертые валидные ячейки в decryptRadius от точки (cx,cy),
+     берёт из них случайные maxCellsPerMove штук (не все разом — иначе
+     один широкий жест открывает целый кластер) и планирует их дешифровку
+     с небольшой задержкой по расстоянию (волна) + джиттер — так эффект
+     выглядит как расходящаяся от курсора реакция, а не «всё сразу» */
   function triggerNear(cx, cy) {
-    const c0 = Math.max(0, Math.floor((cx - radius) / cellSize));
-    const c1 = Math.min(cols - 1, Math.floor((cx + radius) / cellSize));
-    const r0 = Math.max(0, Math.floor((cy - radius) / cellSize));
-    const r1 = Math.min(rows - 1, Math.floor((cy + radius) / cellSize));
-    const rad2 = radius * radius;
-    const now = performance.now();
+    const c0 = Math.max(0, Math.floor((cx - decryptRadius) / cellSize));
+    const c1 = Math.min(cols - 1, Math.floor((cx + decryptRadius) / cellSize));
+    const r0 = Math.max(0, Math.floor((cy - decryptRadius) / cellSize));
+    const r1 = Math.min(rows - 1, Math.floor((cy + decryptRadius) / cellSize));
+    const rad2 = decryptRadius * decryptRadius;
+    const candidates = [];
     for (let rr = r0; rr <= r1; rr++) {
       for (let cc = c0; cc <= c1; cc++) {
         const idx = rr * cols + cc;
@@ -1380,12 +1402,22 @@ function corruptedMask(canvas, photoBox, photoImg) {
         const dx = cc * cellSize + cellSize / 2 - cx, dy = rr * cellSize + cellSize / 2 - cy;
         const dist2 = dx * dx + dy * dy;
         if (dist2 > rad2) continue;
-        const dist = Math.sqrt(dist2);
-        const bandDelay = dist < 20 ? 0 : dist < 40 ? 40 : 80;
-        cellStatus[idx] = 1;
-        active.push({ col: cc, row: rr, state: 'pending', activateAt: now + bandDelay + Math.random() * 60 });
+        candidates.push({ col: cc, row: rr, dist: Math.sqrt(dist2) });
       }
     }
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      const t = candidates[i]; candidates[i] = candidates[j]; candidates[j] = t;
+    }
+    const picked = candidates.slice(0, maxCellsPerMove);
+    if (!picked.length) return;
+    const now = performance.now();
+    picked.forEach(cand => {
+      const idx = cand.row * cols + cand.col;
+      const bandDelay = cand.dist < 20 ? 0 : cand.dist < 40 ? 40 : 80;
+      cellStatus[idx] = 1;
+      active.push({ col: cand.col, row: cand.row, state: 'pending', activateAt: now + bandDelay + Math.random() * 60 });
+    });
     ensureInteractiveLoop();
   }
   function enableScratch(cbs) {
@@ -1404,21 +1436,32 @@ function corruptedMask(canvas, photoBox, photoImg) {
     canvas.removeEventListener('pointermove', moveH);
     removeEventListener('pointerup', upH);
     removeEventListener('pointercancel', upH);
-    pointerId = null;
+    pointerId = null; lastTriggerPt = null;
   }
   function downH(e) {
     if (completed) return;
     pointerId = e.pointerId;
     canvas.setPointerCapture(pointerId);
     const pt = ptFromEvent(e);
-    lastPt = pt;
+    lastPt = pt; lastTriggerPt = pt;
     triggerNear(pt.x, pt.y);
   }
+  /* triggerNear() зовём не на каждый нативный pointermove (те могут идти
+     через доли пикселя), а раз в pathStep CSS-px реального перемещения —
+     иначе плавный жест «прожигает» дорожку сплошняком без ощущения
+     отдельных шагов. lastPt (в отличие от lastTriggerPt) обновляется
+     всегда — это «последняя настоящая точка курсора», её использует волна
+     авто-завершения (maybeAutoComplete) как источник цепной реакции. */
   function moveH(e) {
     if (completed || e.pointerId !== pointerId) return;
     if (e.buttons === 0) return;
     const pt = ptFromEvent(e);
     lastPt = pt;
+    if (lastTriggerPt) {
+      const dx = pt.x - lastTriggerPt.x, dy = pt.y - lastTriggerPt.y;
+      if (dx * dx + dy * dy < pathStep * pathStep) return;
+    }
+    lastTriggerPt = pt;
     triggerNear(pt.x, pt.y);
   }
   function upH() { pointerId = null; }
