@@ -502,21 +502,23 @@ const SC6 = {
     const side = el('div', 's6-side');
     const zoom = el('div', 'mapbox mapbox--zoomin');
     zoom.appendChild(el('div', 'lbl', C.s6.zoomTitle));
-    const zsvg = ns('svg', { viewBox: '0 0 520 300', preserveAspectRatio: 'xMidYMid meet' });
-    /* реальное фото карты (photos/s6-andalucia-map.png) вместо отрисованного
-       контура. Фото 1565x1005 подогнано вручную (x/y/width/height, без
-       preserveAspectRatio) так, чтобы заполнить весь 520x300 viewBox без
-       чёрных полей: обрезка распределена между верхним и нижним тёмным
-       отступом самого фото (там, где под кадром нет реальной геометрии),
-       не затрагивая контур или подписанную на фото точку MÁLAGA */
+    /* native viewBox исходника (photos/s6-malaga-source.png, 1564×1006) —
+       preserveAspectRatio:xMidYMid meet, карта не должна растягиваться.
+       Base — тот же кадр БЕЗ пяти POI (см. content.js/zoomPins); каждый
+       POI — готовый растровый слой pin+label, вырезанный из исходника в
+       ЕГО ЖЕ координатах, поэтому ложится поверх base без подгонки */
+    const zsvg = ns('svg', { viewBox: '0 0 1564 1006', preserveAspectRatio: 'xMidYMid meet' });
     const zoutline = ns('image', {
-      class: 'outline-photo', href: 'photos/s6-andalucia-map.png',
-      x: 0, y: -9.64, width: 520, height: 334, preserveAspectRatio: 'none'
+      class: 'malaga-map-base', href: 'photos/s6-malaga-base.png',
+      x: 0, y: 0, width: 1564, height: 1006
     });
     zsvg.appendChild(zoutline);
-    const zg = ns('g');
-    zsvg.appendChild(zg);
-    const zpins = C.s6.zoomPins.map(p => { const n = pinNode(p, .72); zg.appendChild(n); return n; });
+    const zpins = C.s6.zoomPins.map(p => {
+      const g = ns('g', { class: 'malaga-poi' });
+      g.appendChild(ns('image', { href: p.src, x: p.x, y: p.y, width: p.width, height: p.height }));
+      zsvg.appendChild(g);
+      return g;
+    });
     zoom.appendChild(zsvg);
 
     const status = el('div', 's6-panel rv');
