@@ -349,13 +349,6 @@ const SC4 = {
     show(r.meta);
     await ctx.wait(520);
     for (let i = 0; i < r.cards.length; i++) {
-      /* Тихий участок 00:22–00:24 разделяет январь и февраль;
-         февраль входит вместе с битом на 00:25. */
-      if (i === 4) {
-        const music = Snd.tracks.music;
-        if (music && !music._dead) music.currentTime = 22;
-        await ctx.wait(3000);
-      }
       const c = r.cards[i];
       c.classList.add('enter');
       await ctx.wait(620);
@@ -973,6 +966,8 @@ const SC10 = {
     show(r.thanks);
     await ctx.wait(900);
 
+    E.typingSound = true;
+    E.typingProfile = 0;
     for (let i = 0; i < C.s10.prompt.length; i++) {
       await type(ctx, r.promptNodes[i], C.s10.prompt[i], 40);
       await ctx.wait(400);
@@ -986,6 +981,7 @@ const SC10 = {
       await type(ctx, r.logNodes[i], '> ' + C.s10.installLog[i], 62);
       await ctx.wait(220);
     }
+    E.typingSound = false;
     await ctx.wait(300);
     show(r.bar);
     await ctx.wait(400);

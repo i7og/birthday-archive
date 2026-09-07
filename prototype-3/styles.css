@@ -380,7 +380,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s5-block .k{ text-align:center; font-size:1.05em; letter-spacing:.2em; color:var(--g-bright); margin-bottom:10px; }
 .s5-block .photo{ height:392px; position:relative; }
 .s5-block .photo img{ object-fit:contain; background:#020704; }
-.s5-family .photo img{ object-fit:cover; object-position:center 32%; transform:scale(1.12); }
+.s5-family .photo img{ object-fit:cover; object-position:center bottom; transform:scale(1.12); }
 .s5-relationship .photo img{ object-fit:cover; }
 /* COLLEAGUES: фото 4:3 в вертикальной рамке — простой object-fit:cover обрезал
    бы крайних людей по бокам (группа занимает почти всю ширину кадра), поэтому
@@ -565,7 +565,7 @@ body.mode-b .card.settle{ opacity:1; transform:none; }
 .s8-note{ font-size:.78em; line-height:1.6; color:var(--g-mid); letter-spacing:.06em; white-space:nowrap; }
 .s8-secret{
   margin-top:2px; font-size:.78em; line-height:1.35; color:var(--g);
-  letter-spacing:.06em; text-align:center;
+  letter-spacing:.06em; text-align:left;
 }
 .s8-secret b{ font-weight:400; letter-spacing:.16em; }
 
