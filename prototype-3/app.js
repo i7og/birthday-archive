@@ -282,10 +282,11 @@ async function startRecording() {
   try {
     /* preferCurrentTab — нестандартное (Chrome/Chromium) расширение API:
        просит браузер по умолчанию предложить/выбрать именно эту вкладку
-       вместо экрана/окна. В браузерах без поддержки просто игнорируется,
-       и остаётся обычный выбор источника. */
+       вместо экрана/окна. cursor:'never' просит не рисовать курсор мыши
+       поверх кадров записи. Оба — необязательные хинты: в браузерах без
+       поддержки просто игнорируются, и остаётся обычное поведение. */
     recordStream = await navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: 30, displaySurface: 'browser' },
+      video: { frameRate: 30, displaySurface: 'browser', cursor: 'never' },
       audio: true,
       preferCurrentTab: true,
     });
