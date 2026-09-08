@@ -57,12 +57,18 @@ function watchMusicFade() {
 watchMusicFade();
 
 /* ---------------- масштабирование сцены под экран ---------------- */
+/* тот же брейкпоинт, что и в styles.css: мобильная (портретная) раскладка
+   остаётся мобильной, даже если телефон развернуть в альбомную ориентацию —
+   короткая сторона телефона (высота в альбомной) остаётся маленькой
+   независимо от разворота, в отличие от одного только max-width. */
+const MOBILE_MQ = '(max-width:900px), (pointer:coarse) and (orientation:landscape) and (max-height:500px)';
 function fit() {
-  if (matchMedia('(max-width:900px)').matches) { stage.style.transform = ''; return; }
+  if (matchMedia(MOBILE_MQ).matches) { stage.style.transform = ''; return; }
   const s = Math.min(viewport.clientWidth / 1600, viewport.clientHeight / 900);
   stage.style.transform = 'scale(' + s + ')';
 }
 addEventListener('resize', fit);
+addEventListener('orientationchange', fit);
 
 /* ---------------- HUD ---------------- */
 function pad(n) { return String(n).padStart(2, '0'); }

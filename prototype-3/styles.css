@@ -709,7 +709,10 @@ img{ -webkit-user-drag:none; user-select:none; -webkit-user-select:none; }
 
 /* ============================ МОБИЛЬНАЯ ВЁРСТКА ============================ */
 
-@media (max-width:900px){
+/* мобильная раскладка держится за портретную вёрстку даже когда телефон
+   развёрнут в альбомную ориентацию (короткая сторона телефона остаётся
+   маленькой независимо от разворота, в отличие от простого max-width) */
+@media (max-width:900px), (pointer:coarse) and (orientation:landscape) and (max-height:500px){
   body{ overflow:auto; }
   #shell{ position:static; min-height:100%; }
   #viewport{ display:block; overflow:visible; }
@@ -892,6 +895,7 @@ img{ -webkit-user-drag:none; user-select:none; -webkit-user-select:none; }
 .word{ opacity:0; transition:opacity .28s ease; }
 .word.in{ opacity:1; }
 
-@media (max-width:900px){
+/* тот же брейкпоинт, что и выше */
+@media (max-width:900px), (pointer:coarse) and (orientation:landscape) and (max-height:500px){
   :root{ --tracking:.6mm; }
 }
