@@ -369,18 +369,6 @@ window.CONTENT = {
     tail: ["> LIFE: IN PROGRESS   > NEXT UPDATE: 43.0"]
   },
 
-  /* ---------- КАДР 11 — восстановление повреждённого сектора ---------- */
-  s11: {
-    boot: "DATA RECOVERY",
-    intro: ["SYS-41 // DATA RECOVERY", "CORRUPTED SECTOR DETECTED"],
-    hint: ["MANUAL RECOVERY REQUIRED", "DRAG CURSOR TO RESTORE DATA"],
-    hintActive: "DECRYPTING MEMORY BLOCKS...",
-    progressLabel: "RECOVERED",
-    verified: "DATA INTEGRITY VERIFIED",
-    final: ["RECOVERY COMPLETE", "FILE RESTORED", "ATTACHMENT_11.JPG"],
-    photo: { src: "photos/s11-dawnwalker.jpg", title: "ATTACHMENT 11" }
-  },
-
   /* ---------- ПОДПИСИ СЦЕН ДЛЯ МЕНЮ ---------- */
   menu: [
     "ACCESSING PERSONAL ARCHIVE",
@@ -392,7 +380,6 @@ window.CONTENT = {
     "JOSE'S LEGACY FEATURES",
     "CORE CHARACTER",
     "NUMBERS & STATISTICS",
-    "ARCHIVE / VERSION 42.0",
-    "DATA RECOVERY"
+    "ARCHIVE / VERSION 42.0"
   ]
 };
