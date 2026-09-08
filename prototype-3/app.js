@@ -201,6 +201,11 @@ function initControls() {
     e.currentTarget.textContent = 'CRT: ' + (off ? 'OFF' : 'ON');
   });
 
+  $('#btnRecord').addEventListener('click', () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
+    else startRecording();
+  });
+
   $('#btnMenu').addEventListener('click', () => $('#menu').classList.add('on'));
   $('#menu').addEventListener('click', e => { if (e.target.id === 'menu') $('#menu').classList.remove('on'); });
 
@@ -256,6 +261,78 @@ function togglePause() {
   E.paused = !E.paused;
   $('#btnPause').textContent = E.paused ? '▶ RESUME' : '❚❚ PAUSE';
   $('#stage').classList.toggle('is-paused', E.paused);
+}
+
+/* ---------------- запись экрана ----------------
+   Кнопка "● REC" запускает запись экрана через getDisplayMedia + MediaRecorder,
+   кнопка "■ STOP" (то же место) её останавливает — по остановке видео сразу
+   скачивается файлом. Отдельного сервера/бэкенда не требуется: всё живёт
+   в памяти вкладки, ролик собирается в Blob и отдаётся через <a download>. */
+let mediaRecorder = null;
+let recordStream = null;
+let recordedChunks = [];
+
+function pickRecorderMimeType() {
+  const candidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  return candidates.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+}
+
+function setRecordButtonState(isRecording) {
+  const b = $('#btnRecord');
+  if (!b) return;
+  b.classList.toggle('recording', isRecording);
+  b.textContent = isRecording ? '■ STOP' : '● REC';
+  b.title = isRecording
+    ? 'Остановить запись и скачать видео'
+    : 'Запись экрана — после остановки видео скачается автоматически';
+}
+
+async function startRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia || !window.MediaRecorder) {
+    alert('Запись экрана не поддерживается этим браузером.');
+    return;
+  }
+  try {
+    recordStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+  } catch (err) {
+    return; /* пользователь отменил выбор источника экрана */
+  }
+  recordedChunks = [];
+  const mimeType = pickRecorderMimeType();
+  mediaRecorder = mimeType ? new MediaRecorder(recordStream, { mimeType }) : new MediaRecorder(recordStream);
+
+  mediaRecorder.addEventListener('dataavailable', e => {
+    if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+  });
+  mediaRecorder.addEventListener('stop', () => {
+    recordStream.getTracks().forEach(t => t.stop());
+    recordStream = null;
+    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
+    recordedChunks = [];
+    const url = URL.createObjectURL(blob);
+    const a = el('a');
+    a.href = url;
+    a.download = 'birthday-archive-recording-' + Date.now() + '.webm';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+    mediaRecorder = null;
+    setRecordButtonState(false);
+  });
+
+  /* пользователь может остановить показ экрана через системный UI браузера,
+     а не через нашу кнопку — тогда тоже аккуратно завершаем запись */
+  recordStream.getVideoTracks()[0].addEventListener('ended', () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  });
+
+  mediaRecorder.start();
+  setRecordButtonState(true);
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
 
 function start() {
