@@ -3,8 +3,8 @@ const ctx = canvas.getContext('2d');
 const glyphs = '01アイウエオカキクケコサシスセソЖДЙФΣλ{}[]<>/';
 let cols = [];
 
-document.querySelector('#prototypeVersionLabel').textContent = 'ПРОТОТИП ' + window.PROTOTYPE_VERSION;
-document.querySelector('#activeBuild').textContent = window.PROTOTYPE_VERSION;
+/* билд-номер нигде не показывается — только внутри DOM, для отладки */
+document.documentElement.dataset.build = window.PROTOTYPE_VERSION;
 
 function resize() {
   const ratio = Math.min(devicePixelRatio || 1, 2);

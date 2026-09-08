@@ -13,7 +13,8 @@ const roots = [];
 let started = Date.now();
 let startTimers = [];
 
-$('#prototypeVersion').textContent = 'PROTOTYPE ' + window.PROTOTYPE_VERSION;
+/* билд-номер нигде не показывается — только внутри DOM, для отладки */
+document.documentElement.dataset.build = window.PROTOTYPE_VERSION;
 
 /* ---------------- звук: берём библиотеку самого репозитория ---------------- */
 Snd.load('boot',  '../assets/sounds/matrix-monitor.mp3',      false, .45);
@@ -22,6 +23,38 @@ Snd.load('blip',  '../assets/sounds/matrix-materialize.mp3',  false, .22);
 Snd.load('music', '../assets/sounds/matrix-clubbed-to-death.mp3', true, .26);
 Snd.load('outro', '../assets/sounds/matrix-monitor.mp3',      false, .40);
 Snd.load('mario', '../assets/sounds/mario-level-complete.mp3', false, .55);
+
+/* ---------------- фейд музыки по её собственному времени ----------------
+   Кадр 9 → Кадр 10 больше не связан с ctx.wait()/таймингом сцены: фейд и
+   переход считаются исключительно по currentTime самого трека 'music' —
+   00:00–05:50 обычная громкость, 05:50–05:53 плавный фейд, с 05:53
+   громкость 0 и трек на паузе. Переход в Кадр 10 срабатывает ровно в этот
+   момент, только если в этот момент реально показан Кадр 9 (cur === 8) и
+   включён автоплей — иначе просто молча замолкает там, где сейчас стоим. */
+function watchMusicFade() {
+  const a = Snd.tracks.music;
+  if (!a) return;
+  const FADE_START = 350, FADE_END = 353;
+  let baseVolume = a.volume;
+  let done = false;
+  a.addEventListener('play', () => {
+    if (a.currentTime < FADE_START) { done = false; a.volume = baseVolume; }
+  });
+  a.addEventListener('timeupdate', () => {
+    if (done) return;
+    const t = a.currentTime;
+    if (t < FADE_START) { baseVolume = a.volume; return; }
+    if (t < FADE_END) {
+      a.volume = Math.max(0, baseVolume * (1 - (t - FADE_START) / (FADE_END - FADE_START)));
+      return;
+    }
+    a.volume = 0;
+    a.pause();
+    done = true;
+    if (E.autoplay && cur === 8) goTo(9);
+  });
+}
+watchMusicFade();
 
 /* ---------------- масштабирование сцены под экран ---------------- */
 function fit() {
@@ -76,22 +109,15 @@ async function goTo(i) {
   $('#btnPause').textContent = '❚❚ PAUSE';
   gapEl.classList.toggle('on', i === 9);
 
-  /* Музыка и заголовок годового обзора начинаются сразу после сканирования. */
-  if (i === 3) {
-    Snd.play('music');
-  }
   rebuild(i);
   roots.forEach((n, k) => n.classList.toggle('active', k === i));
   cur = i;
   updateHUD();
   fit();
 
-  if (i === 9 && !E.instant) {
-    await new Promise(resolve => setTimeout(resolve, 650));
-    if (E.token !== token) return;
-    gapEl.classList.remove('on');
-  }
-  if (E.instant) gapEl.classList.remove('on');
+  /* Переход 9 → 10 больше не держит паузу здесь — см. watchMusicFade()
+     ниже: он сам вызывает goTo(9) ровно на 05:53 трека, без чёрного экрана. */
+  gapEl.classList.remove('on');
 
   const ctx = ctxFor(token);
   try {
@@ -102,19 +128,15 @@ async function goTo(i) {
   }
   if (E.token !== token || !E.autoplay) return;
 
-  /* Кадр 10 → 11 переходит не по завершению этой функции, а строго по
-     событию 'ended' аудио Mario (см. SC10.play()/onMarioEnded в
-     scenes.js) — иначе переход случился бы раньше конца мелодии (как
+  /* Переход 9 → 10 не идёт через обычный auto-next: его исключительно
+     запускает watchMusicFade() (ниже) ровно на 05:53 трека музыки, вне
+     зависимости от того, успела ли доиграть визуальная временная шкала
+     Кадра 9. Переход 10 → 11 переходит не по завершению этой функции, а
+     строго по событию 'ended' аудио Mario (см. SC10.play()/onMarioEnded
+     в scenes.js) — иначе переход случился бы раньше конца мелодии (как
      только доиграют fireworks/пожелания) или сработал бы дважды. */
-  if (i === 9) return;
+  if (i === 8 || i === 9) return;
 
-  /* ТЗ: пауза 7–10 секунд между кадром 9 и кадром 10, музыка затихает */
-  if (i === 8) {
-    await Snd.fadeOut('music', 2200);
-    gapEl.classList.add('on');
-    try { await ctx.wait(2000); } catch (e) { gapEl.classList.remove('on'); return; }
-    gapEl.classList.remove('on');
-  }
   if (E.token !== token) return;
   if (i < SCENES.length - 1) goTo(i + 1);
 }
