@@ -280,7 +280,15 @@ async function startRecording() {
     return;
   }
   try {
-    recordStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+    /* preferCurrentTab — нестандартное (Chrome/Chromium) расширение API:
+       просит браузер по умолчанию предложить/выбрать именно эту вкладку
+       вместо экрана/окна. В браузерах без поддержки просто игнорируется,
+       и остаётся обычный выбор источника. */
+    recordStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 30, displaySurface: 'browser' },
+      audio: true,
+      preferCurrentTab: true,
+    });
   } catch (err) {
     return; /* пользователь отменил выбор источника экрана */
   }
