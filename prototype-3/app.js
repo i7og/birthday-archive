@@ -266,7 +266,16 @@ let recordStream = null;
 let recordedChunks = [];
 
 function pickRecorderMimeType() {
-  const candidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  /* mp4 первым — если браузер умеет писать сразу в mp4 (Safari, новые
+     Chrome/Edge), используем его; иначе тихо откатываемся на webm
+     (Firefox и часть браузеров mp4-запись через MediaRecorder не умеют). */
+  const candidates = [
+    'video/mp4;codecs=avc1,mp4a.40.2',
+    'video/mp4',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm'
+  ];
   return candidates.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
 }
 
@@ -309,12 +318,14 @@ async function startRecording() {
   mediaRecorder.addEventListener('stop', () => {
     recordStream.getTracks().forEach(t => t.stop());
     recordStream = null;
-    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
+    const actualMime = mediaRecorder.mimeType || 'video/webm';
+    const blob = new Blob(recordedChunks, { type: actualMime });
     recordedChunks = [];
     const url = URL.createObjectURL(blob);
+    const ext = actualMime.includes('mp4') ? 'mp4' : 'webm';
     const a = el('a');
     a.href = url;
-    a.download = 'birthday-archive-recording-' + Date.now() + '.webm';
+    a.download = 'birthday-archive-recording-' + Date.now() + '.' + ext;
     document.body.appendChild(a);
     a.click();
     a.remove();
