@@ -188,19 +188,6 @@ function initControls() {
     e.currentTarget.textContent = 'SPEED ' + E.speed + '×';
   });
 
-  $('#btnMode').addEventListener('click', e => {
-    const b = document.body.classList.toggle('mode-b');
-    e.currentTarget.textContent = 'ANIM: ' + (b ? 'B' : 'A');
-    e.currentTarget.title = b
-      ? 'Режим B — слайд появляется целиком, объекты по очереди подсвечиваются'
-      : 'Режим A — карточки приходят поверх кадра, zoom in, затем встают на место';
-  });
-
-  $('#btnCrt').addEventListener('click', e => {
-    const off = document.body.classList.toggle('no-crt');
-    e.currentTarget.textContent = 'CRT: ' + (off ? 'OFF' : 'ON');
-  });
-
   $('#btnRecord').addEventListener('click', () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
     else startRecording();
